@@ -25,8 +25,8 @@ public:
         void atualizarData();
     }
 
-    string getData();
-    string getHora();
+    string getData() const;
+    string getHora() const;
     string getDataDeHoje();
     string getHoraDeHoje();
 

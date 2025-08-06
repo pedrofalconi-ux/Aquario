@@ -11,6 +11,10 @@ private:
 public:
     void formatar() override;
     void exibir() override;
+    
+    // Métodos específicos para Avisos
+    void setCategoria(const std::string& categoria) { achadosPerdido = categoria; }
+    std::string getCategoria() const { return achadosPerdido; }
 };
 
 #endif

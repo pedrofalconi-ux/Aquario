@@ -116,7 +116,7 @@ void Data::setHora(int h, int mi) {
     }
 }
 
-string Data::getData() {
+string Data::getData() const {
     stringstream data;
     // Formatação
     data << setw(2) << setfill('0') << dia << "/"
@@ -126,7 +126,7 @@ string Data::getData() {
     return data.str();
 }
 
-string Data::getHora() {
+string Data::getHora() const {
     stringstream tempo;
     // Formatação
     tempo << setw(2) << setfill('0') << hora << ":"
