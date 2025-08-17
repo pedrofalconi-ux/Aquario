@@ -107,36 +107,27 @@ void Controle::executarEditor() {
 void Controle::apagar(int t) {
     switch (t) {
         case Title:
-            for (auto num : titulo) 
-                titulo[num] = '\0';
+            titulo[0] = '\0';
             break;
         case Subtitle:
-            for (auto num : subtitulo) 
-                subtitulo[num] = '\0';
+            subtitulo[0] = '\0';
             break;
         case Author:
-            for (auto num : autor) 
-                autor[num] = '\0';
+            autor[0] = '\0';
             break;
         case Body:
-            for (auto num : corpo) 
-                corpo[num] = '\0';
+            corpo[0] = '\0';
             break;
         case Image:
-            for (auto num : imagem) 
-                imagem[num] = '\0';
+            imagem[0] = '\0';
             break;
+
         case All:
-            for (auto num : titulo) 
-                titulo[num] = '\0';
-            for (auto num : subtitulo) 
-                subtitulo[num] = '\0';
-            for (auto num : autor) 
-                autor[num] = '\0';
-            for (auto num : corpo) 
-                corpo[num] = '\0';
-            for (auto num : imagem) 
-                imagem[num] = '\0';
+            titulo[0] = '\0';
+            subtitulo[0] = '\0';
+            autor[0] = '\0';
+            corpo[0] = '\0';
+            imagem[0] = '\0';
             break;
         default:
             break;

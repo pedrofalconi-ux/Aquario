@@ -12,7 +12,7 @@
 #include <vector>
 #include <string.h>
 #include <fstream>
-#include "Libs/curses.h" //Por o -> -L./PDCurses -l:pdcurses.a ao compilar
+#include "Libs/curses.h" //Por o -> -L./Libs -l:pdcurses.a ao compilar
 #include "Libs/json.hpp"
 
 using json = nlohmann::json;
