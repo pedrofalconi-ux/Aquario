@@ -1,31 +1,81 @@
+# Makefile Completo - Sistema Aquário Integrado
 CXX = g++
 CXXFLAGS = -std=c++14 -Wall -Wextra
-SOURCES = Data.cpp Avisos.cpp fofoca.cpp Humor.cpp StackOverflow.cpp Anonimo.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
+LDFLAGS = -L./Libs -l:pdcurses.a
 
-all: $(OBJECTS)
-	@echo "Classes de notícia compiladas com sucesso!"
+# Arquivos fonte
+SOURCES_NOTICIA = Data.cpp Avisos.cpp fofoca.cpp Humor.cpp StackOverflow.cpp Anonimo.cpp
+SOURCES_CONTROLE = Controle.cpp
+SOURCES_ALL = $(SOURCES_NOTICIA) $(SOURCES_CONTROLE)
 
+# Objetos
+OBJECTS_NOTICIA = $(SOURCES_NOTICIA:.cpp=.o)
+OBJECTS_CONTROLE = $(SOURCES_CONTROLE:.cpp=.o)
+OBJECTS_ALL = $(SOURCES_ALL:.cpp=.o)
+
+# Executável final
+TARGET = aquario
+
+# Regra principal - compila tudo
+all: $(TARGET)
+
+# Cria o executável
+$(TARGET): $(OBJECTS_ALL) main.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo "✅ Sistema Aquário compilado com sucesso!"
+
+# Compila apenas as classes de notícia (compatibilidade)
+noticias: $(OBJECTS_NOTICIA)
+	@echo "✅ Classes de notícia compiladas!"
+
+# Compila apenas o controle
+controle: $(OBJECTS_CONTROLE)
+	@echo "✅ Classe Controle compilada!"
+
+# Regra para objetos individuais
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-test: $(OBJECTS)
-	@echo "Teste de compilação bem-sucedido!"
-	@echo "Objetos gerados: $(OBJECTS)"
+# Cria um main.cpp básico se não existir
+main.cpp:
+	@echo "Criando main.cpp básico..."
+	@echo '#include "Controle.hpp"' > main.cpp
+	@echo '#include <iostream>' >> main.cpp
+	@echo 'using namespace std;' >> main.cpp
+	@echo '' >> main.cpp
+	@echo 'int main() {' >> main.cpp
+	@echo '    Controle sistema;' >> main.cpp
+	@echo '    cout << "Sistema Aquário iniciado!" << endl;' >> main.cpp
+	@echo '    return 0;' >> main.cpp
+	@echo '}' >> main.cpp
 
+# Testa compilação
+test: $(OBJECTS_ALL)
+	@echo "✅ Teste de compilação bem-sucedido!"
+	@echo "Objetos gerados: $(OBJECTS_ALL)"
+
+# Executa o programa
+run: $(TARGET)
+	./$(TARGET)
+
+# Limpa arquivos gerados
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(OBJECTS_ALL) main.o $(TARGET)
 
+# Limpa tudo incluindo main.cpp gerado
+distclean: clean
+	rm -f main.cpp noticias.html *.json
+
+# Ajuda
 help:
-	@echo "Comandos disponíveis para branch noticia:"
-	@echo "  make          - Compila todas as classes de notícia"
-	@echo "  make test     - Testa a compilação"
+	@echo "Comandos disponíveis:"
+	@echo "  make          - Compila sistema completo"
+	@echo "  make noticias - Compila apenas classes de notícia"
+	@echo "  make controle - Compila apenas classe Controle"
+	@echo "  make test     - Testa compilação"
+	@echo "  make run      - Compila e executa"
 	@echo "  make clean    - Remove arquivos objeto"
+	@echo "  make distclean- Remove tudo"
 	@echo "  make help     - Mostra esta ajuda"
 
-run:
-	@echo "❌ Esta é a branch 'noticia' - apenas estruturas de dados!"
-	@echo "🔄 Para executar o programa completo, use a branch com a classe Controle"
-	@echo "✅ Use 'make test' para verificar se as classes compilam corretamente"
-
-.PHONY: all test clean help run
+.PHONY: all noticias controle test run clean distclean help
