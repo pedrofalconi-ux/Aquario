@@ -12,14 +12,15 @@ json js;
 
 
 Controle::Controle() {
-    
     // Garante que todas as strings terminem com '\0'
     titulo[49] = '\0';
     subtitulo[99] = '\0';
     autor[49] = '\0';
     corpo[9999] = '\0';
     imagem[99] = '\0';
-
+    
+    // Inicializa tipo de notícia padrão
+    tipoNoticiaAtual = 0; // Avisos por padrão
 }
 
 // Implementação do método 'mover'
@@ -194,5 +195,141 @@ void Controle::carregarDados(int i) {
 }
 
 void imprimir() {
+    cout << "=== SISTEMA AQUÁRIO - NOTÍCIAS ===" << endl;
+    cout << "Função de impressão implementada!" << endl;
+}
 
+// ========== NOVOS MÉTODOS PARA INTEGRAÇÃO DE CONTROLE COM NOTICIA ==========
+
+void Controle::criarNoticia(int tipo) {
+    unique_ptr<Noticia> novaNoticia;
+    
+    switch(tipo) {
+        case 0: novaNoticia = make_unique<Avisos>(); break;
+        case 1: novaNoticia = make_unique<Fofoca>(); break;
+        case 2: novaNoticia = make_unique<Humor>(); break;
+        case 3: novaNoticia = make_unique<StackOverflow>(); break;
+        case 4: novaNoticia = make_unique<Anonimo>(); break;
+        default: novaNoticia = make_unique<Avisos>(); break;
+    }
+    
+    novaNoticia->setTitulo(string(titulo));
+    novaNoticia->setSubtitulo(string(subtitulo));
+    novaNoticia->setAutor(string(autor));
+    novaNoticia->setCorpo(string(corpo));
+    novaNoticia->setImagem(string(imagem));
+    
+    novaNoticia->formatar();
+    noticias.push_back(move(novaNoticia));
+}
+
+void Controle::selecionarTipoNoticia() {
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    clear();
+    
+    vector<const char*> tipos = {
+        "0 - Avisos",
+        "1 - Fofoca", 
+        "2 - Humor",
+        "3 - StackOverflow",
+        "4 - Anonimo"
+    };
+    
+    int escolha = 0;
+    int ch = 0;
+    
+    while(ch != '\n') {
+        clear();
+        mvprintw(0, 0, "=== SELECIONAR TIPO DE NOTÍCIA ===");
+        
+        for(size_t i = 0; i < tipos.size(); i++) {
+            if(i == escolha) {
+                attron(A_REVERSE);
+                mvprintw(i + 2, 0, "> %s", tipos[i]);
+                attroff(A_REVERSE);
+            } else {
+                mvprintw(i + 2, 0, "  %s", tipos[i]);
+            }
+        }
+        
+        mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
+        refresh();
+        
+        ch = getch();
+        
+        switch(ch) {
+            case KEY_UP:
+                escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha < tipos.size() - 1) ? escolha + 1 : 0;
+                break;
+        }
+    }
+    
+    tipoNoticiaAtual = escolha;
+    endwin();
+}
+
+void Controle::editarNoticiaAtual() {
+    selecionarTipoNoticia();
+    
+    executarEditor();
+    
+    criarNoticia(tipoNoticiaAtual);
+}
+
+void Controle::exibirNoticias() {
+    cout << "\n=== NOTÍCIAS CADASTRADAS ===" << endl;
+    
+    if(noticias.empty()) {
+        cout << "Nenhuma notícia cadastrada." << endl;
+        return;
+    }
+    
+    for(size_t i = 0; i < noticias.size(); i++) {
+        cout << "\n--- Notícia " << (i+1) << " ---" << endl;
+        cout << "Tipo: " << getTipoNoticiaString(tipoNoticiaAtual) << endl;
+        cout << "Título: " << noticias[i]->getTitulo() << endl;
+        cout << "Autor: " << noticias[i]->getAutor() << endl;
+        cout << "Data: " << noticias[i]->getDataFormatada() << endl;
+        cout << "Hora: " << noticias[i]->getHoraFormatada() << endl;
+        
+        noticias[i]->exibir();
+    }
+}
+
+void Controle::gerarHTML() {
+    ofstream arquivo("noticias.html");
+    
+    arquivo << "<!DOCTYPE html>" << endl;
+    arquivo << "<html><head><title>Aquário - Notícias</title></head>" << endl;
+    arquivo << "<body><h1>Sistema Aquário</h1>" << endl;
+    
+    for(size_t i = 0; i < noticias.size(); i++) {
+        arquivo << "<div class='noticia'>" << endl;
+        arquivo << "<h2>" << noticias[i]->getTitulo() << "</h2>" << endl;
+        arquivo << "<p><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>" << endl;
+        arquivo << "<p>" << noticias[i]->getCorpo() << "</p>" << endl;
+        arquivo << "</div><hr>" << endl;
+    }
+    
+    arquivo << "</body></html>" << endl;
+    arquivo.close();
+    
+    cout << "HTML gerado: noticias.html" << endl;
+}
+
+string Controle::getTipoNoticiaString(int tipo) {
+    switch(tipo) {
+        case 0: return "Avisos";
+        case 1: return "Fofoca";
+        case 2: return "Humor"; 
+        case 3: return "StackOverflow";
+        case 4: return "Anonimo";
+        default: return "Desconhecido";
+    }
 }
