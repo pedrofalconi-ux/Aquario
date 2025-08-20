@@ -12,9 +12,16 @@
 #include <vector>
 #include <string.h>
 #include <fstream>
-#include <memory>
+#if defined(_WIN32) || defined(_WIN64)
 #include "Libs/curses.h" //Por o -> -L./Libs -l:pdcurses.a ao compilar
-#include "Libs/json.hpp"
+#endif
+
+#ifdef __linux__
+#include <ncurses.h>
+#include <ncursesw/ncurses.h>
+#include <unistd.h>
+#include <boost/locale.hpp>
+#endif
 
 // Incluindo suas classes de notícia
 #include "Noticia.hpp"
@@ -25,41 +32,67 @@
 #include "Anonimo.hpp"
 #include "Data.hpp"
 
+#include "Libs/json.hpp"
+
 using json = nlohmann::json;
 using namespace std;
 
 class Controle {
 private:
-    // Atributos antigos (manter compatibilidade)
+    // Variáveis de estado da interface, também privadas
+    int x, y, yMax, xMax, ch;
+    
+    #if defined(_WIN32) || defined(_WIN64)
+    // Atributos da classe
     char titulo[50];
     char subtitulo[100];
     char autor[50];
     char corpo[10000];
     char imagem[100];
 
+    // Métodos auxiliares privados
+    void mover(int cx, int cy, char* buffer, int buffer_size);
+    #endif
+
+    #ifdef __linux__
+    // Atributos da classe
+    vector<wstring> textos;
+    vector<wstring> rotulos = {L"Titulo:    ", L"Subtitulo: ", L"Autor:     ", L"Corpo:     ", L"Imagem:    "};
+
+    wint_t wch;
+
+    json js;
+
+    // Métodos auxiliares privados
+    void mover(int cx, int cy, wstring &buffer);
+    string wstringToUtf8(const std::wstring &wstr);
+    wstring utf8ToWstring(const std::string &str);
+
+    #endif
+
     // Novos atributos para suas classes
     vector<unique_ptr<Noticia>> noticias;
     int tipoNoticiaAtual;
-
-    // Variáveis de estado da interface, também privadas
-    int x, y, yMax, xMax, ch;
-
-    // Métodos auxiliares privados
-    void mover(int cx, int cy, char* buffer, int buffer_size);
 
 public:
     // Declaração do Construtor
     Controle();
 
-    // Métodos antigos (manter compatibilidade)
+    // Declaração do método principal
+    #ifdef __linux__
+    vector<wstring> listar();
+    #endif
+    void animation();
     void executarEditor();
     void apagar(int t);
+    #if defined(_WIN32) || defined(_WIN64)
     vector<string> listar();
+    #endif
     void salvarDados(int i);
     void carregarDados(int i);
     void imprimir();
 
-    // Novos métodos para suas classes
+     // Novos métodos para suas classes
     void criarNoticia(int tipo);
     void editarNoticiaAtual();
     void selecionarTipoNoticia();

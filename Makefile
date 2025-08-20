@@ -1,7 +1,26 @@
 # Makefile Completo - Sistema Aquário Integrado
 CXX = g++
+OS = $(shell uname)
 CXXFLAGS = -std=c++14 -Wall -Wextra
-LDFLAGS = -L./Libs -l:pdcurses.a
+
+ifeq ($(OS), Linux)
+# Para usar essas libs coloca no terminal: 
+
+# Distros Debian:
+# sudo apt-get update 
+# sudo apt-get install libncurses5-dev libncursesw5-dev libboost-locale-dev
+
+# Distros fedora:
+# sudo dnf install ncurses-devel boost-devel
+
+# Distros Arch:
+# sudo pacman -S ncurses boost
+
+    LDFLAGS = -lncurses -lncursesw -ltinfo -lboost_locale 
+
+else
+    LDFLAGS = -L./Libs -l:pdcurses.a
+endif
 
 # Arquivos fonte
 SOURCES_NOTICIA = Data.cpp Avisos.cpp fofoca.cpp Humor.cpp StackOverflow.cpp Anonimo.cpp
