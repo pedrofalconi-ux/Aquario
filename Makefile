@@ -9,6 +9,7 @@ ifeq ($(OS), Linux)
 # Distros Debian:
 # sudo apt-get update 
 # sudo apt-get install libncurses5-dev libncursesw5-dev libboost-locale-dev
+# sudo apt-get upgrade
 
 # Distros fedora:
 # sudo dnf install ncurses-devel boost-devel
@@ -40,7 +41,7 @@ all: $(TARGET)
 
 # Cria o executável
 $(TARGET): $(OBJECTS_ALL) main.o
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CXX) -g $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 	@echo "✅ Sistema Aquário compilado com sucesso!"
 
 # Compila apenas as classes de notícia (compatibilidade)

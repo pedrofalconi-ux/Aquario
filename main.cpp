@@ -6,6 +6,7 @@ using namespace std;
 int main() {
     Controle sistema;
     sistema.animation();
+
     cout << "=== SISTEMA AQUÁRIO ===" << endl;
     cout << "Sistema de Gerenciamento de Notícias" << endl;
     cout << endl;

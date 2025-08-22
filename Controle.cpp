@@ -242,7 +242,7 @@ void Controle::selecionarTipoNoticia() {
     };
     
     int escolha = 0;
-    ch = 0;
+    int ch = 0;
     
     while(ch != '\n') {
         clear();
@@ -370,30 +370,18 @@ Controle::Controle()
 }
 
 void Controle::mover(int cx, int cy, wstring &buffer) {
-    // Limpa o buffer se estiver vazio ou só com espaço
-    if (buffer == L" ") {
-        buffer.clear();
-    }
-    
-    int i = buffer.size();
+    refresh();
+    int i = (int)buffer.size();
     x = cx + i;
     y = cy;
 
     curs_set(1);
-    clear();
-    
-    // Mostra o status atual
-    mvprintw(y, 0, "Editando: %s%s", wstringToUtf8(rotulos[cy]).c_str(), wstringToUtf8(buffer).c_str());
-    mvprintw(y + 1, 0, "Enter para confirmar, ESC para cancelar");
     move(y, x);
-    refresh();
     
-    while (true) {
-        ch = get_wch(&wch);
-        if(ch == ERR)
+    while ((get_wch(&wch)) != KEY_DOWN && wch != KEY_UP) {
+        if((int)wch == ERR)
             continue;
-            
-        if (wch == L'\n' || wch == L'\r' || wch == 27) { // Enter ou ESC
+        if (wch == L'\n' || wch == L'\r') {
             break;
         }
         
@@ -410,30 +398,36 @@ void Controle::mover(int cx, int cy, wstring &buffer) {
                     x++; 
                 }
                 break;
+            case KEY_UP:
+            case KEY_DOWN:
+                return;
             case KEY_BACKSPACE:
             case 127: case 8:
                 if (i > 0) {
                     i--;
                     x--;        
                     buffer.erase(i, 1);
+                    mvaddch(y, x, ' ');
+                    clrtoeol();
                 }
                 break;
             default:
-                if (wch >= 32 && wch < 127) { // Caracteres imprimíveis
+                    mvaddch(y, x, (wchar_t)wch);
                     buffer.insert(i, 1, (wchar_t)wch);
                     i++; x++;
-                }
                 break;
         }
 
-        // Redesenha apenas a linha sendo editada
-        move(y, 0);
-        clrtoeol();
-        mvprintw(y, 0, "Editando: %s%s", wstringToUtf8(rotulos[cy]).c_str(), wstringToUtf8(buffer).c_str());
-        move(y, cx + i);
+        //redesenhando a tela depois de cada interação
+        clear();
+        //clrtoeol();
+        for (size_t j = 0; j < textos.size(); j++) {
+            mvprintw(j, 0, "%s%s", wstringToUtf8(rotulos[j]).c_str(), wstringToUtf8(textos[j]).c_str());
+        }
+        move(y, x);
+
         refresh();
     }
-    
     curs_set(0);
 }
 
@@ -448,46 +442,34 @@ void Controle::executarEditor() {
 
     int campo_atual = 0;
     wch = 0;
-    
     while (true) {
-        // Redesenha a tela
-        clear();
+        if (campo_atual == (int)textos.size() - 1 && (ch == L'\n' || ch == L'\r' || ch ==27)) 
+            break;
+
         for (size_t i = 0; i < textos.size(); i++) {
-            // Destaca o campo atual
-            if ((int)i == campo_atual) {
-                attron(A_REVERSE);
-                mvprintw(i, 0, "> %s%s", wstringToUtf8(rotulos[i]).c_str(), wstringToUtf8(textos[i]).c_str());
-                attroff(A_REVERSE);
+            
+            move(i, rotulos[i].size() + textos[i].size());
+            clrtoeol();
+
+            mvprintw(i, 0, "%s%s", wstringToUtf8(rotulos[i]).c_str(), wstringToUtf8(textos[i]).c_str());
+
+            //mvaddwstr(i,0,rotulos[i].c_str());          // desenha rótulo
+            //mvaddwstr(i, rotulos[i].size() + 3, textos[i].c_str()); // desenha texto
+        }
+        
+        mover(rotulos[campo_atual].size(), campo_atual, textos[campo_atual]);
+
+        if (wch == L'\n') {
+            if (campo_atual == (int)textos.size() - 1) {
+                break; // sai do editor apenas se for o último campo
             } else {
-                mvprintw(i, 0, "  %s%s", wstringToUtf8(rotulos[i]).c_str(), wstringToUtf8(textos[i]).c_str());
+                campo_atual++; // Enter pula pro próximo campo
             }
         }
-        
-        mvprintw(textos.size() + 1, 0, "Use setas para navegar, Enter para editar campo, ESC para sair");
-        refresh();
-        
-        // Aguarda input do usuário
-        ch = get_wch(&wch);
-        if (ch == ERR) continue;
-        
-        switch (wch) {
-            case KEY_UP:
-                campo_atual = (campo_atual > 0) ? campo_atual - 1 : (int)textos.size() - 1;
-                break;
-            case KEY_DOWN:
-                campo_atual = (campo_atual < (int)textos.size() - 1) ? campo_atual + 1 : 0;
-                break;
-            case L'\n':
-            case L'\r':
-                // Entra no modo de edição do campo atual
-                mover(rotulos[campo_atual].size() + 2, campo_atual, textos[campo_atual]);
-                break;
-            case 27: // ESC
-                endwin();
-                return;
-            default:
-                break;
-        }
+        else if 
+            (wch == KEY_UP) campo_atual = (campo_atual > 0) ? campo_atual - 1 : (int)textos.size() - 1;
+        else 
+            campo_atual = (campo_atual < (int)  textos.size() - 1) ? campo_atual + 1 : 0;
     }
 
     endwin();
