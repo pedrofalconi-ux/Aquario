@@ -1,7 +1,7 @@
 # Makefile Completo - Sistema Aquário Integrado
 CXX = g++
 OS = $(shell uname)
-CXXFLAGS = -std=c++14 -Wall -Wextra
+CXXFLAGS = -std=c++17 
 
 ifeq ($(OS), Linux)
 # Para usar essas libs coloca no terminal: 
@@ -20,7 +20,7 @@ ifeq ($(OS), Linux)
     LDFLAGS = -lncurses -lncursesw -ltinfo -lboost_locale 
 
 else
-    LDFLAGS = -L./Libs -l:pdcurses.a
+    LDFLAGS = -L./Libs -l:pdcurses.a -static-libstdc++
 endif
 
 # Arquivos fonte
@@ -80,7 +80,7 @@ run: $(TARGET)
 
 # Limpa arquivos gerados
 clean:
-	rm -f $(OBJECTS_ALL) main.o $(TARGET)
+	rm -f $(OBJECTS_ALL) main.o $(TARGET) *.json
 
 # Limpa tudo incluindo main.cpp gerado
 distclean: clean

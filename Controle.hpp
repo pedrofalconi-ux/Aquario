@@ -12,6 +12,8 @@
 #include <vector>
 #include <string.h>
 #include <fstream>
+#include <filesystem>
+
 #if defined(_WIN32) || defined(_WIN64)
 #include "Libs/curses.h" //Por o -> -L./Libs -l:pdcurses.a ao compilar
 #endif
@@ -36,6 +38,7 @@
 
 using json = nlohmann::json;
 using namespace std;
+namespace fs = std::filesystem;
 
 class Controle {
 private:
@@ -52,6 +55,8 @@ private:
 
     // Métodos auxiliares privados
     void mover(int cx, int cy, char* buffer, int buffer_size);
+    void salvarDadoIndice(int contador);
+    void carregarDadoIndice(int indice);
     #endif
 
     #ifdef __linux__
@@ -82,14 +87,17 @@ public:
     #ifdef __linux__
     vector<wstring> listar();
     #endif
-    void animation();
-    void executarEditor();
-    void apagar(int t);
+
     #if defined(_WIN32) || defined(_WIN64)
     vector<string> listar();
     #endif
-    void salvarDados(int i);
-    void carregarDados(int i);
+
+    void animation();
+    void executarEditor();
+    void apagar(int t);
+    void editarNoticia(int indice);
+    void salvarDados();
+    void carregarDados();
     void imprimir();
 
      // Novos métodos para suas classes

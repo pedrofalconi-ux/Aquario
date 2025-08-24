@@ -14,12 +14,11 @@ json js;
 
 
 Controle::Controle() {
-    // Garante que todas as strings terminem com '\0'
-    titulo[49] = '\0';
-    subtitulo[99] = '\0';
-    autor[49] = '\0';
-    corpo[9999] = '\0';
-    imagem[99] = '\0';
+    titulo[0] = '\0';
+    subtitulo[0] = '\0';
+    autor[0] = '\0';
+    corpo[0] = '\0';
+    imagem[0] = '\0';
     
     // Inicializa tipo de notícia padrão
     tipoNoticiaAtual = 0; // Avisos por padrão
@@ -147,7 +146,7 @@ vector<string> Controle::listar() {
 
 }
 
-void Controle::salvarDados(int i) {
+void Controle::salvarDadoIndice(int contador) {
     ofstream arquivo;
 
     js["Titulo"] = titulo;
@@ -155,45 +154,146 @@ void Controle::salvarDados(int i) {
     js["Autor"] = autor;
     js["Corpo"] = corpo;
     js["Imagem"] = imagem;
+    js["Tipo"] = tipoNoticiaAtual;
 
-    string nomeArquivo = "arquivo" + to_string(i) + ".json";
+    string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
 
     arquivo << js;
     arquivo.close();
 }
 
-void Controle::carregarDados(int i) {
+void Controle::carregarDadoIndice(int indice) {
     ifstream arquivo;
 
-    string nomeArquivo = "arquivo" + to_string(i) + ".json";
-    arquivo.open(nomeArquivo);
-    try {
-        arquivo >> js; // Se botar um indice invalido dá erro
-    } catch (json::parse_error& e) {
-        std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+   string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
+        arquivo.open(nomeArquivo);
+        try {
+            arquivo >> js; // Se botar um indice invalido dá erro
+        } catch (json::parse_error& e) {
+            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+        }
+        arquivo.close();
+
+        string json_string_recebida = js.dump();
+        json dados_lidos = json::parse(json_string_recebida);
+
+        string temp;
+        temp = dados_lidos["Titulo"];
+        strcpy(titulo, temp.c_str());
+
+        temp = dados_lidos["Subtitulo"];
+        strcpy(subtitulo, temp.c_str());
+
+        temp = dados_lidos["Autor"];
+        strcpy(autor, temp.c_str());
+
+        temp = dados_lidos["Corpo"];
+        strcpy(corpo, temp.c_str());
+
+        temp = dados_lidos["Imagem"];
+        strcpy(imagem, temp.c_str());
+}
+
+void Controle::editarNoticia(int indice) {
+    carregarDadoIndice(indice);
+    executarEditor();
+    salvarDadoIndice(indice);
+}
+
+void Controle::salvarDados() {
+    ofstream arquivo;
+    
+    int contador = 0;
+    json indice;
+
+    string nomeDiretorio = "Pasta";
+    fs::create_directory(nomeDiretorio);
+
+    ifstream if_indice("./Pasta/Indice.json");
+    if (if_indice.is_open()) {
+        if_indice >> indice;
+        if_indice.close();
+
+        if (indice.count("Indice")) {
+            contador = indice["Indice"].get<int>();
+            contador++;
+        } else {
+            contador = 0;
+        }
+    } else {
+        contador = 0;
     }
+
+    ofstream of_indice("./Pasta/Indice.json");
+    
+    indice["Indice"] = contador;
+    of_indice << indice;
+    of_indice.close();
+
+    js["Titulo"] = titulo;
+    js["Subtitulo"] = subtitulo;
+    js["Autor"] = autor;
+    js["Corpo"] = corpo;
+    js["Imagem"] = imagem;
+    js["Tipo"] = tipoNoticiaAtual;
+
+    string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
+    arquivo.open(nomeArquivo);
+
+    arquivo << js;
     arquivo.close();
+
+}
+
+void Controle::carregarDados() {
+    ifstream arquivo;
+    json indice;
+    int contador;
+
+    ifstream if_indice("./Pasta/Indice.json");
+    if (if_indice.is_open()) {
+        if_indice >> indice;
+        if_indice.close();
+
+        if (indice.count("Indice")) {
+            contador = indice["Indice"].get<int>();
+        }
+    }
     
-    string json_string_recebida = js.dump();
-    json dados_lidos = json::parse(json_string_recebida);
+    for (int i = 0; i <= contador; i++) {
+        string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
+        arquivo.open(nomeArquivo);
+        try {
+            arquivo >> js; // Se botar um indice invalido dá erro
+        } catch (json::parse_error& e) {
+            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+        }
+        arquivo.close();
 
-    string temp;
-    temp = dados_lidos["Titulo"];
-    strcpy(titulo, temp.c_str());
+        string json_string_recebida = js.dump();
+        json dados_lidos = json::parse(json_string_recebida);
 
-    temp = dados_lidos["Subtitulo"];
-    strcpy(subtitulo, temp.c_str());
+        string temp;
+        temp = dados_lidos["Titulo"];
+        strcpy(titulo, temp.c_str());
 
-    temp = dados_lidos["Autor"];
-    strcpy(autor, temp.c_str());
+        temp = dados_lidos["Subtitulo"];
+        strcpy(subtitulo, temp.c_str());
 
-    temp = dados_lidos["Corpo"];
-    strcpy(corpo, temp.c_str());
+        temp = dados_lidos["Autor"];
+        strcpy(autor, temp.c_str());
 
-    temp = dados_lidos["Imagem"];
-    strcpy(imagem, temp.c_str());
-    
+        temp = dados_lidos["Corpo"];
+        strcpy(corpo, temp.c_str());
+
+        temp = dados_lidos["Imagem"];
+        strcpy(imagem, temp.c_str());
+
+        tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
+
+        criarNoticia(tipoNoticiaAtual);
+    }
 }
 
 void imprimir() {
@@ -278,22 +378,19 @@ void Controle::selecionarTipoNoticia() {
 }
 
 void Controle::editarNoticiaAtual() {
+    
+    apagar(All); //Somente limpando o buffer
     selecionarTipoNoticia();
     
     executarEditor();
-    
-    criarNoticia(tipoNoticiaAtual);
+
 }
 
 void Controle::exibirNoticias() {
     cout << "\n=== NOTÍCIAS CADASTRADAS ===" << endl;
-    
-    if(noticias.empty()) {
-        cout << "Nenhuma notícia cadastrada." << endl;
-        return;
-    }
-    
+
     for(size_t i = 0; i < noticias.size(); i++) {
+
         cout << "\n--- Notícia " << (i+1) << " ---" << endl;
         cout << "Tipo: " << getTipoNoticiaString(tipoNoticiaAtual) << endl;
         cout << "Título: " << noticias[i]->getTitulo() << endl;
@@ -303,6 +400,7 @@ void Controle::exibirNoticias() {
         
         noticias[i]->exibir();
     }
+    noticias.clear(); //Limpa a lista após exibir
 }
 
 void Controle::gerarHTML() {
@@ -777,7 +875,12 @@ void Controle::animation()
         
 
         refresh();
-        usleep(110000);
+        #ifdef __linus__
+            usleep(110000);
+        #endif
+        #if defined (_WIN32) || (_WIN64)
+            Sleep(110);
+        #endif
 
         tempo++;
     }
