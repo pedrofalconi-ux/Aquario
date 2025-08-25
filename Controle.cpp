@@ -610,7 +610,7 @@ vector<wstring> Controle::listar() {
 
 }
 
-void Controle::salvarDados(int i) {
+void Controle::salvarDadoIndice(int contador) {
     ofstream arquivo;
 
     js["Titulo"] = wstringToUtf8(textos[Title]);
@@ -618,47 +618,134 @@ void Controle::salvarDados(int i) {
     js["Autor"] = wstringToUtf8(textos[Author]);
     js["Corpo"] = wstringToUtf8(textos[Body]);
     js["Imagem"] = wstringToUtf8(textos[Image]);
+    js["Tipo"] = tipoNoticiaAtual;
 
-    string nomeArquivo = "arquivo" + to_string(i) + ".json";
+    string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
 
-    cout << "foi" << endl;
-
-    arquivo << js.dump(4);
+    arquivo << js;
     arquivo.close();
 }
 
-void Controle::carregarDados(int i) {
+void Controle::carregarDadoIndice(int indice) {
     ifstream arquivo;
 
-    string nomeArquivo = "arquivo" + to_string(i) + ".json";
-    arquivo.open(nomeArquivo);
-    try {
-        arquivo >> js; // Se botar um indice invalido dá erro
-    } catch (json::parse_error& e) {
-        std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+   string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
+        arquivo.open(nomeArquivo);
+        try {
+            arquivo >> js; // Se botar um indice invalido dá erro
+        } catch (json::parse_error& e) {
+            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+        }
+        arquivo.close();
+
+        string json_string_recebida = js.dump();
+        json dados_lidos = json::parse(json_string_recebida);
+
+        textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
+
+        textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
+
+        textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
+
+        textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
+
+        textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
+}
+
+void Controle::editarNoticia(int indice) {
+    carregarDadoIndice(indice);
+    executarEditor();
+    salvarDadoIndice(indice);
+}
+
+void Controle::salvarDados() {
+    ofstream arquivo;
+    
+    int contador = 0;
+    json indice;
+
+    string nomeDiretorio = "Pasta";
+    fs::create_directory(nomeDiretorio);
+
+    ifstream if_indice("./Pasta/Indice.json");
+    if (if_indice.is_open()) {
+        if_indice >> indice;
+        if_indice.close();
+
+        if (indice.count("Indice")) {
+            contador = indice["Indice"].get<int>();
+            contador++;
+        } else {
+            contador = 0;
+        }
+    } else {
+        contador = 0;
     }
+
+    ofstream of_indice("./Pasta/Indice.json");
+    
+    indice["Indice"] = contador;
+    of_indice << indice;
+    of_indice.close();
+
+    js["Titulo"] = wstringToUtf8(textos[Title]);
+    js["Subtitulo"] = wstringToUtf8(textos[Subtitle]);
+    js["Autor"] = wstringToUtf8(textos[Author]);
+    js["Corpo"] = wstringToUtf8(textos[Body]);
+    js["Imagem"] = wstringToUtf8(textos[Image]);
+    js["Tipo"] = tipoNoticiaAtual;
+
+    string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
+    arquivo.open(nomeArquivo);
+
+    arquivo << js;
     arquivo.close();
+
+}
+
+void Controle::carregarDados() {
+    ifstream arquivo;
+    json indice;
+    int contador;
+
+    ifstream if_indice("./Pasta/Indice.json");
+    if (if_indice.is_open()) {
+        if_indice >> indice;
+        if_indice.close();
+
+        if (indice.count("Indice")) {
+            contador = indice["Indice"].get<int>();
+        }
+    }
     
-    string json_string_recebida = js.dump();
-    json dados_lidos = json::parse(json_string_recebida);
+    for (int i = 0; i <= contador; i++) {
+        string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
+        arquivo.open(nomeArquivo);
+        try {
+            arquivo >> js; // Se botar um indice invalido dá erro
+        } catch (json::parse_error& e) {
+            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+        }
+        arquivo.close();
 
-    wstring temp;
-    temp = utf8ToWstring(dados_lidos["Titulo"]);
-    textos[Title] = temp;
+        string json_string_recebida = js.dump();
+        json dados_lidos = json::parse(json_string_recebida);
 
-    temp = utf8ToWstring(dados_lidos["Subtitulo"]);
-    textos[Subtitle] = temp;
+        textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
 
-    temp = utf8ToWstring(dados_lidos["Autor"]);
-    textos[Author] = temp;
+        textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
 
-    temp = utf8ToWstring(dados_lidos["Corpo"]);
-    textos[Body] = temp;
+        textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
 
-    temp = utf8ToWstring(dados_lidos["Imagem"]);
-    textos[Image] = temp;
-    
+        textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
+
+        textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
+
+        tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
+
+        criarNoticia(tipoNoticiaAtual);
+    }
 }
 
 void Controle::imprimir() {

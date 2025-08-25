@@ -70,6 +70,8 @@ private:
 
     // Métodos auxiliares privados
     void mover(int cx, int cy, wstring &buffer);
+    void salvarDadoIndice(int contador);
+    void carregarDadoIndice(int indice);
     string wstringToUtf8(const std::wstring &wstr);
     wstring utf8ToWstring(const std::string &str);
 
