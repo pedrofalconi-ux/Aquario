@@ -22,7 +22,7 @@ Em vez disso, criamos esta versão como um meio de:
 
 ## 🤝 Sobre Colaboração
 
-O projeto original é open source e qualquer pessoa pode contribuir.
+O projeto original está no processo de se tornar Extensão, orientado pela prof. Yuska, e pelo prof. Lincoln, em parceria com o Connecta Ci, além disso, a iniciativa original é open source e qualquer pessoa pode contribuir.
 
 Este repositório é uma iniciativa acadêmica para divulgação e aprendizado — portanto, **nosso código não é open source** nem está aberto para contribuições externas.
 
