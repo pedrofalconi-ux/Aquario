@@ -14,8 +14,10 @@ int main() {
     
     int opcao;
     string option;
+
     
     do {
+        sistema.carregarDados();
 
         cout << "\n--- MENU PRINCIPAL ---" << endl;
         cout << "1 - Criar Nova Notícia" << endl;
@@ -36,7 +38,6 @@ int main() {
                 break;
                 
             case 2:
-                sistema.carregarDados();
                 sistema.exibirNoticias();
                 cout << "\nDeseja editar alguma notícia? Digite: [S/N]" << endl;
                 cin >> option;
@@ -54,6 +55,7 @@ int main() {
                 
             case 4:
                 cout << "\n--- EDITOR SIMPLES ---" << endl;
+                sistema.pesquisar();
                 sistema.executarEditor();
                 cout << "Dados inseridos no editor!" << endl;
                 break;

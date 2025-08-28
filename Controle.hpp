@@ -87,7 +87,7 @@ public:
 
     // Declaração do método principal
     #ifdef __linux__
-    vector<wstring> listar();
+    int pesquisar();
     #endif
 
     #if defined(_WIN32) || defined(_WIN64)

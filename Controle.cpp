@@ -600,14 +600,117 @@ void Controle::apagar(int t) {
     }
 }
 
-vector<wstring> Controle::listar() {
-    vector<wstring> resultados_finais;
+int Controle::pesquisar() {
+    setlocale(LC_ALL, "");
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    getmaxyx(stdscr,yMax,xMax);
+    clear();
+    
+    x = 1;
+    
+    vector<string> nomes;
+    vector<int> indv;
+    wstring bufe;
+    // bufe.resize(1, L' ');
 
-    for (auto texto_final : textos) {
-        resultados_finais.push_back(wstring(texto_final));
+    int car = 0;
+    
+    int ind = -1;
+    int escolha = 0;
+    
+    wch = L' ';
+    while(wch != L'\n') {
+        clear();
+
+        nomes.clear();
+        indv.clear();
+        
+
+        for(int i = 0; i < noticias.size(); i++)
+        {   
+            if(noticias.at(i)->getTitulo().find(wstringToUtf8(bufe)) != string::npos || bufe.empty())
+            {
+                nomes.push_back(noticias.at(i)->getTitulo());
+                indv.push_back(i);
+            }
+            
+        }
+        
+        mvprintw(0, 0, "======Pesquisar======");
+
+        mvprintw(1, 1, "%s", wstringToUtf8(bufe).c_str());
+        
+        for(size_t i = 0; i < nomes.size(); i++) {
+            string linha = ((int)i == escolha ? "> " : "  ") + nomes[i];
+            if((int)i == escolha) {
+                attron(A_REVERSE);
+                mvprintw(i + 3, 0, linha.c_str());
+                attroff(A_REVERSE);
+            } else {
+                mvprintw(i + 3, 0, linha.c_str());
+            }
+
+        }
+        
+        mvprintw(nomes.size() + 4, 0, "Use setas para navegar, Enter para selecionar");
+
+         move(1, x);
+         refresh();
+        
+        get_wch(&wch);
+
+        if((int)wch == ERR)
+            continue;
+        
+        switch(wch) {
+            case KEY_UP:
+                escolha = (escolha > 0) ? escolha - 1 : nomes.size() - 1;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha < (int)nomes.size() - 1) ? escolha + 1 : 0;
+                break;
+            case KEY_BACKSPACE:
+            case 127: case 8:
+                if(car > 0)
+                {
+                    car--;
+                    x--;        
+                    bufe.erase(car, 1);
+                    mvaddch(1, x, ' ');
+                    clrtoeol();
+                }
+                break;
+            case KEY_LEFT:
+                if (car > 0) { 
+                    car--;
+                    x--; 
+                }
+                break;
+            case KEY_RIGHT:
+                if (car < (int)bufe.size()) { 
+                    car++;
+                    x++; 
+                }
+                break;
+            default:
+                    mvaddch(1, x, (wchar_t)wch);
+                    bufe.insert(car, 1, (wchar_t)wch);
+                    car++;
+                    x++;
+                break;
+        }
     }
-    return resultados_finais;
+    clear();
+    refresh();
 
+    if(!indv.empty())
+        ind = indv.at(escolha);
+
+    endwin();
+    return ind;
 }
 
 void Controle::salvarDadoIndice(int contador) {
@@ -962,7 +1065,7 @@ void Controle::animation()
         
 
         refresh();
-        #ifdef __linus__
+        #ifdef __linux__
             usleep(110000);
         #endif
         #if defined (_WIN32) || (_WIN64)
