@@ -616,6 +616,9 @@ int Controle::pesquisar() {
     wstring bufe;
     // bufe.resize(1, L' ');
 
+    noticias.clear();
+    carregarDados();
+
     int car = 0;
     
     int ind = -1;
@@ -820,34 +823,35 @@ void Controle::carregarDados() {
         if (indice.count("Indice")) {
             contador = indice["Indice"].get<int>();
         }
-    }
     
-    for (int i = 0; i <= contador; i++) {
-        string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
-        arquivo.open(nomeArquivo);
-        try {
-            arquivo >> js; // Se botar um indice invalido dá erro
-        } catch (json::parse_error& e) {
-            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+    
+        for (int i = 0; i <= contador; i++) {
+            string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
+            arquivo.open(nomeArquivo);
+            try {
+                arquivo >> js; // Se botar um indice invalido dá erro
+            } catch (json::parse_error& e) {
+                std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+            }
+            arquivo.close();
+
+            string json_string_recebida = js.dump();
+            json dados_lidos = json::parse(json_string_recebida);
+
+            textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
+
+            textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
+
+            textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
+
+            textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
+
+            textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
+
+            tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
+
+            criarNoticia(tipoNoticiaAtual);
         }
-        arquivo.close();
-
-        string json_string_recebida = js.dump();
-        json dados_lidos = json::parse(json_string_recebida);
-
-        textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
-
-        textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
-
-        textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
-
-        textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
-
-        textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
-
-        tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
-
-        criarNoticia(tipoNoticiaAtual);
     }
 }
 
