@@ -3,8 +3,6 @@
 //Roda tudo da main
 void Controle::iniciar_a_Porra_Toda() {
 
-    animation();
-
     initscr();
     cbreak();
     noecho();
@@ -190,6 +188,7 @@ void Controle::executarEditor() {
     int campo_atual = 0;
     ch = 0;
     while (ch != '\n') {
+
         for (size_t i = 0; i < textos.size(); i++) {
             mvprintw(i, 0, "%s%s", rotulos[i], textos[i]);
             move(i, strlen(rotulos[i]) + strlen(textos[i]));
@@ -259,32 +258,36 @@ void Controle::carregarDadoIndice(int indice) {
     ifstream arquivo;
 
    string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
-        arquivo.open(nomeArquivo);
-        try {
-            arquivo >> js; // Se botar um indice invalido dá erro
-        } catch (json::parse_error& e) {
-            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+    arquivo.open(nomeArquivo);
+        if(arquivo.is_open()) {
+            try {
+                arquivo >> js; // Se botar um indice invalido dá erro
+            } catch (json::parse_error& e) {
+                std::cerr << "Erro de parsing no JSON: carregarDadoIndice" << e.what() << std::endl;
+            }
+            arquivo.close();
+
+            string json_string_recebida = js.dump();
+            json dados_lidos = json::parse(json_string_recebida);
+
+            string temp;
+            temp = dados_lidos["Titulo"];
+            strcpy(titulo, temp.c_str());
+
+            temp = dados_lidos["Subtitulo"];
+            strcpy(subtitulo, temp.c_str());
+
+            temp = dados_lidos["Autor"];
+            strcpy(autor, temp.c_str());
+
+            temp = dados_lidos["Corpo"];
+            strcpy(corpo, temp.c_str());
+
+            temp = dados_lidos["Imagem"];
+            strcpy(imagem, temp.c_str());
+        } else {
+            iniciar_a_Porra_Toda(); // Caso haja algum erro ele volta pra tela inicial
         }
-        arquivo.close();
-
-        string json_string_recebida = js.dump();
-        json dados_lidos = json::parse(json_string_recebida);
-
-        string temp;
-        temp = dados_lidos["Titulo"];
-        strcpy(titulo, temp.c_str());
-
-        temp = dados_lidos["Subtitulo"];
-        strcpy(subtitulo, temp.c_str());
-
-        temp = dados_lidos["Autor"];
-        strcpy(autor, temp.c_str());
-
-        temp = dados_lidos["Corpo"];
-        strcpy(corpo, temp.c_str());
-
-        temp = dados_lidos["Imagem"];
-        strcpy(imagem, temp.c_str());
 }
 
 void Controle::editarNoticia(int indice) {
@@ -358,7 +361,7 @@ void Controle::carregarDados() {
             try {
                 arquivo >> js; // Se botar um indice invalido dá erro
             } catch (json::parse_error& e) {
-                std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+                std::cerr << "Erro de parsing no JSON: carregarDados" << e.what() << std::endl;
             }
             arquivo.close();
         
@@ -443,9 +446,12 @@ int Controle::pesquisar() {
     ch = ' ';
     while (ch != '\n') {
         clear();
-
         nomes.clear();
         indv.clear();
+
+        if (ch == '\033') {
+            iniciar_a_Porra_Toda(); //Volta para a tela inicial caso o usuario clique em esc
+        }
 
         // Filtra notícias
         for (int i = 0; i < (int)noticias.size(); i++) {
@@ -583,6 +589,8 @@ void Controle::selecionarTipoNoticia() {
             case KEY_DOWN:
                 escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
                 break;
+            case '\033':
+                iniciar_a_Porra_Toda(); //Esc reinicia
         }
     }
     
@@ -848,7 +856,10 @@ int Controle::pesquisar() {
 
         nomes.clear();
         indv.clear();
-        
+
+        if (ch == '\033') {
+            iniciar_a_Porra_Toda(); //Volta para a tela inicial caso o usuario clique em esc
+        }
 
         for(int i = 0; i < noticias.size(); i++)
         {   
@@ -972,26 +983,30 @@ void Controle::carregarDadoIndice(int indice) {
 
    string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
         arquivo.open(nomeArquivo);
-        try {
-            arquivo >> js; // Se botar um indice invalido dá erro
-        } catch (json::parse_error& e) {
-            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
-            throw range_error("Nenhum usuário foi criado!!!!!!!");
+        if (arquivo.is_open()) {
+            try {
+                arquivo >> js; // Se botar um indice invalido dá erro
+            } catch (json::parse_error& e) {
+                std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+                throw range_error("Nenhum usuário foi criado!!!!!!!");
+            }
+            arquivo.close();
+
+            string json_string_recebida = js.dump();
+            json dados_lidos = json::parse(json_string_recebida);
+
+            textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
+
+            textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
+
+            textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
+
+            textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
+
+            textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
+        } else {
+            iniciar_a_Porra_Toda(); // Caso haja algum erro ele volta pra tela inicial
         }
-        arquivo.close();
-
-        string json_string_recebida = js.dump();
-        json dados_lidos = json::parse(json_string_recebida);
-
-        textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
-
-        textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
-
-        textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
-
-        textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
-
-        textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
 }
 
 void Controle::editarNoticia(int indice) {

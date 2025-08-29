@@ -54,6 +54,7 @@ private:
     char imagem[100];
 
     vector<char*> textos;
+    json js;
 
     // Métodos auxiliares privados
     void mover(int cx, int cy, char* buffer, int buffer_size);
