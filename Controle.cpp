@@ -1,5 +1,104 @@
 #include "Controle.hpp"
 
+//Roda tudo da main
+void Controle::iniciar_a_Porra_Toda() {
+
+    animation();
+
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    clear();
+
+    cout << "=== SISTEMA AQUÁRIO ===" << endl;
+    cout << "Sistema de Gerenciamento de Notícias" << endl;
+    cout << endl;
+    
+    int opcao;
+    string option;
+
+    do {
+        
+        vector<const char*> tipos = {
+            "Criar Nova Notícia",
+            "Exibir Todas as Notícias", 
+            "Gerar HTML",
+            "Sair"
+        };
+
+        int escolha = 0;
+        int ch = 0;
+
+        while(ch != '\n') {
+            clear();
+            mvprintw(0, 0, "=== SELECIONAR ===");
+
+            for(size_t i = 0; i < tipos.size(); i++) {
+                if((int)i == escolha) {
+                    attron(A_REVERSE);
+                    mvprintw(i + 2, 0, "> %s", tipos[i]);
+                    attroff(A_REVERSE);
+                } else {
+                    mvprintw(i + 2, 0, "  %s", tipos[i]);
+                }
+            }
+
+            mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
+            refresh();
+
+            ch = getch();
+
+            switch(ch) {
+                case KEY_UP:
+                    escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
+                    break;
+                case KEY_DOWN:
+                    escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
+                    break;
+            }
+        }
+
+        opcao = escolha;
+
+        switch(opcao) {
+
+                case 0:
+                    cout << "\n--- CRIANDO NOVA NOTÍCIA ---" << endl;
+                    editarNoticiaAtual();
+                    salvarDados();
+                    cout << "Notícia criada com sucesso!" << endl;
+                    break;
+
+                case 1:
+                    cout << "Escolha a notícia que deseja editar: " << endl;
+                    int indice;
+                    indice = pesquisar();
+                    editarNoticia(indice);
+                    
+                    break;
+
+                case 2:
+                    gerarHTML();
+                    break;
+
+                case 3:
+                    cout << "Encerrando sistema..." << endl;
+                    break;
+
+                default:
+                    cout << "Opção inválida!" << endl;
+            }
+
+            #if defined (_WIN32) || (_WIN64)
+                system("cls");
+            #endif
+
+    } while (opcao != 3);
+
+    endwin();
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 
 char titulo[50];
@@ -11,7 +110,6 @@ char imagem[100];
 vector<char*> textos = {titulo, subtitulo, autor, corpo, imagem};
 
 json js;
-
 
 Controle::Controle() {
     titulo[0] = '\0';
@@ -259,40 +357,40 @@ void Controle::carregarDados() {
         if (indice.count("Indice")) {
             contador = indice["Indice"].get<int>();
         }
-    }
-    
-    for (int i = 0; i <= contador; i++) {
-        string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
-        arquivo.open(nomeArquivo);
-        try {
-            arquivo >> js; // Se botar um indice invalido dá erro
-        } catch (json::parse_error& e) {
-            std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+        
+        for (int i = 0; i <= contador; i++) {
+            string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
+            arquivo.open(nomeArquivo);
+            try {
+                arquivo >> js; // Se botar um indice invalido dá erro
+            } catch (json::parse_error& e) {
+                std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+            }
+            arquivo.close();
+        
+            string json_string_recebida = js.dump();
+            json dados_lidos = json::parse(json_string_recebida);
+        
+            string temp;
+            temp = dados_lidos["Titulo"];
+            strcpy(titulo, temp.c_str());
+        
+            temp = dados_lidos["Subtitulo"];
+            strcpy(subtitulo, temp.c_str());
+        
+            temp = dados_lidos["Autor"];
+            strcpy(autor, temp.c_str());
+        
+            temp = dados_lidos["Corpo"];
+            strcpy(corpo, temp.c_str());
+        
+            temp = dados_lidos["Imagem"];
+            strcpy(imagem, temp.c_str());
+        
+            tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
+        
+            criarNoticia(tipoNoticiaAtual);
         }
-        arquivo.close();
-
-        string json_string_recebida = js.dump();
-        json dados_lidos = json::parse(json_string_recebida);
-
-        string temp;
-        temp = dados_lidos["Titulo"];
-        strcpy(titulo, temp.c_str());
-
-        temp = dados_lidos["Subtitulo"];
-        strcpy(subtitulo, temp.c_str());
-
-        temp = dados_lidos["Autor"];
-        strcpy(autor, temp.c_str());
-
-        temp = dados_lidos["Corpo"];
-        strcpy(corpo, temp.c_str());
-
-        temp = dados_lidos["Imagem"];
-        strcpy(imagem, temp.c_str());
-
-        tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
-
-        criarNoticia(tipoNoticiaAtual);
     }
 }
 
@@ -386,21 +484,141 @@ void Controle::editarNoticiaAtual() {
 
 }
 
-void Controle::exibirNoticias() {
-    cout << "\n=== NOTÍCIAS CADASTRADAS ===" << endl;
+int Controle::pesquisar() {
+    setlocale(LC_ALL, "");
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    getmaxyx(stdscr, yMax, xMax);
+    clear();
 
-    for(size_t i = 0; i < noticias.size(); i++) {
+    char bufe[256];   // buffer de busca
+    bufe[0] = '\0';
+    int car = 0;      // posição dentro do buffer
+    x = 1;
 
-        cout << "\n--- Notícia " << (i+1) << " ---" << endl;
-        cout << "Tipo: " << getTipoNoticiaString(tipoNoticiaAtual) << endl;
-        cout << "Título: " << noticias[i]->getTitulo() << endl;
-        cout << "Autor: " << noticias[i]->getAutor() << endl;
-        cout << "Data: " << noticias[i]->getDataFormatada() << endl;
-        cout << "Hora: " << noticias[i]->getHoraFormatada() << endl;
+    vector<string> nomes;
+    vector<int> indv;
+
+    noticias.clear();
+    carregarDados();
+
+    int ind = -1;
+    int escolha = 0;
+
+    ch = ' ';
+    while (ch != '\n') {
+        clear();
+
+        nomes.clear();
+        indv.clear();
+
+        // Filtra notícias
+        for (int i = 0; i < (int)noticias.size(); i++) {
+            if (strstr(noticias.at(i)->getTitulo().c_str(), bufe) != nullptr || strlen(bufe) == 0) {
+                nomes.push_back(noticias.at(i)->getTitulo());
+                indv.push_back(i);
+            }
+        }
+
+        mvprintw(0, 0, "======Pesquisar======");
+        mvprintw(1, 1, "%s", bufe);
+
+        for (size_t i = 0; i < nomes.size(); i++) {
+            string linha = ((int)i == escolha ? "> " : "  ") + nomes[i];
+            if ((int)i == escolha) {
+                attron(A_REVERSE);
+                mvprintw(i + 3, 0, linha.c_str());
+                attroff(A_REVERSE);
+            } else {
+                mvprintw(i + 3, 0, linha.c_str());
+            }
+        }
+
+        mvprintw(nomes.size() + 4, 0, "=== Nada Encontrado ===");
+
+        move(1, x);
         
-        noticias[i]->exibir();
+        //Segurança para evitar uns crash de entrar num vetor vazio
+        if (!indv.empty()) {
+            if (escolha >= 0 && escolha < indv.size()) {
+                mvprintw(nomes.size() + 4, 0, exibirNoticias(indv.at(escolha)).c_str());
+            }
+            } else {
+            mvprintw(4, 0, "Nenhum resultado encontrado.");
+            escolha = 0;
+        }
+        
+        refresh();
+        
+        ch = getch();
+        switch (ch) {
+            case KEY_UP:
+                escolha = (escolha > 0) ? escolha - 1 : nomes.size() - 1;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha < (int)nomes.size() - 1) ? escolha + 1 : 0;
+                break;
+            case KEY_BACKSPACE:
+            case 127:
+            case 8:
+                if (car > 0) {
+                    car--;
+                    x--;
+                    bufe[car] = '\0';
+                    mvaddch(1, x, ' ');
+                    clrtoeol();
+                }
+                break;
+            case KEY_LEFT:
+                if (car > 0) {
+                    car--;
+                    x--;
+                }
+                break;
+            case KEY_RIGHT:
+                if (car < (int)strlen(bufe)) {
+                    car++;
+                    x++;
+                }
+                break;
+            default:
+                if (car < (int)sizeof(bufe) - 1 && isprint(ch)) {
+                    mvaddch(1, x, ch);
+                    bufe[car] = ch;
+                    car++;
+                    x++;
+                    bufe[car] = '\0';
+                }
+                break;
+        }
     }
-    noticias.clear(); //Limpa a lista após exibir
+    clear();
+    refresh();
+
+    if (!indv.empty())
+        ind = indv.at(escolha);
+
+    endwin();
+    return ind;
+}
+
+string Controle::exibirNoticias(int ind) {
+
+    string lista;
+
+    noticias.clear(); //Limpa a lista antes de exibir
+    carregarDados();
+    
+    lista = "\n--- Notícia " + to_string(ind + 1) + " ---" + "\n"
+          + "Tipo: " + getTipoNoticiaString(tipoNoticiaAtual) + "\n"
+          + "Título: " + noticias[ind]->getTitulo() + "\n"
+          + "Autor: " + noticias[ind]->getAutor() + "\n"
+          + "Data: " + noticias[ind]->getDataFormatada() + "\n"
+          + "Hora: " + noticias[ind]->getHoraFormatada() + "\n";
+    
+    return lista;
 }
 
 void Controle::gerarHTML() {

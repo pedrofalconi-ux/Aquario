@@ -92,6 +92,7 @@ public:
 
     #if defined(_WIN32) || defined(_WIN64)
     vector<string> listar();
+    int pesquisar();
     #endif
 
     void animation();
@@ -100,13 +101,14 @@ public:
     void editarNoticia(int indice);
     void salvarDados();
     void carregarDados();
+    void iniciar_a_Porra_Toda();
     void imprimir();
 
      // Novos métodos para suas classes
     void criarNoticia(int tipo);
     void editarNoticiaAtual();
     void selecionarTipoNoticia();
-    void exibirNoticias();
+    string exibirNoticias(int escolha);
     void gerarHTML();
     string getTipoNoticiaString(int tipo);
 };
