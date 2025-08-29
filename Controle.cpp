@@ -17,6 +17,7 @@ void Controle::iniciar_a_Porra_Toda() {
     
     int opcao;
     string option;
+    string problem;
 
     do {
         
@@ -44,7 +45,7 @@ void Controle::iniciar_a_Porra_Toda() {
                 }
             }
 
-            mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
+            mvprintw(8, 0, "Use setas para navegar, Enter para selecionar\n\n %s", problem.c_str());
             refresh();
 
             ch = getch();
@@ -64,6 +65,7 @@ void Controle::iniciar_a_Porra_Toda() {
         switch(opcao) {
 
                 case 0:
+                    problem.clear();
                     cout << "\n--- CRIANDO NOVA NOTÍCIA ---" << endl;
                     editarNoticiaAtual();
                     salvarDados();
@@ -72,9 +74,14 @@ void Controle::iniciar_a_Porra_Toda() {
 
                 case 1:
                     cout << "Escolha a notícia que deseja editar: " << endl;
-                    int indice;
-                    indice = pesquisar();
-                    editarNoticia(indice);
+                    try
+                    {
+                    editarNoticia(pesquisar());
+                    }
+                    catch(range_error e)
+                    {
+                        problem = e.what();
+                    }
                     
                     break;
 
@@ -101,25 +108,22 @@ void Controle::iniciar_a_Porra_Toda() {
 
 #if defined(_WIN32) || defined(_WIN64)
 
-char titulo[50];
-char subtitulo[100];
-char autor[50];
-char corpo[10000];
-char imagem[100];
-
-vector<char*> textos = {titulo, subtitulo, autor, corpo, imagem};
-
-json js;
-
 Controle::Controle() {
     titulo[0] = '\0';
     subtitulo[0] = '\0';
     autor[0] = '\0';
     corpo[0] = '\0';
     imagem[0] = '\0';
+
+    textos = {titulo, subtitulo, autor, corpo, imagem};
     
     // Inicializa tipo de notícia padrão
     tipoNoticiaAtual = 0; // Avisos por padrão
+}
+
+Controle::Controle(int tipoNoticia)
+{
+    
 }
 
 // Implementação do método 'mover'
@@ -232,16 +236,6 @@ void Controle::apagar(int t) {
         default:
             break;
     }
-}
-
-vector<string> Controle::listar() {
-    vector<string> resultados_finais;
-
-    for (auto texto_final : textos) {
-        resultados_finais.push_back(string(texto_final));
-    }
-    return resultados_finais;
-
 }
 
 void Controle::salvarDadoIndice(int contador) {
@@ -422,67 +416,6 @@ void Controle::criarNoticia(int tipo) {
     novaNoticia->formatar();
     noticias.push_back(move(novaNoticia));
 }
-#endif
-
-void Controle::selecionarTipoNoticia() {
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-    clear();
-    
-    vector<const char*> tipos = {
-        "0 - Avisos",
-        "1 - Fofoca", 
-        "2 - Humor",
-        "3 - StackOverflow",
-        "4 - Anonimo"
-    };
-    
-    int escolha = 0;
-    int ch = 0;
-    
-    while(ch != '\n') {
-        clear();
-        mvprintw(0, 0, "=== SELECIONAR TIPO DE NOTÍCIA ===");
-        
-        for(size_t i = 0; i < tipos.size(); i++) {
-            if((int)i == escolha) {
-                attron(A_REVERSE);
-                mvprintw(i + 2, 0, "> %s", tipos[i]);
-                attroff(A_REVERSE);
-            } else {
-                mvprintw(i + 2, 0, "  %s", tipos[i]);
-            }
-        }
-        
-        mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
-        refresh();
-        
-        ch = getch();
-        
-        switch(ch) {
-            case KEY_UP:
-                escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
-                break;
-            case KEY_DOWN:
-                escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
-                break;
-        }
-    }
-    
-    tipoNoticiaAtual = escolha;
-    endwin();
-}
-
-void Controle::editarNoticiaAtual() {
-    
-    apagar(All); //Somente limpando o buffer
-    selecionarTipoNoticia();
-    
-    executarEditor();
-
-}
 
 int Controle::pesquisar() {
     setlocale(LC_ALL, "");
@@ -604,6 +537,68 @@ int Controle::pesquisar() {
     return ind;
 }
 
+#endif
+
+void Controle::selecionarTipoNoticia() {
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    clear();
+    
+    vector<const char*> tipos = {
+        "0 - Avisos",
+        "1 - Fofoca", 
+        "2 - Humor",
+        "3 - StackOverflow",
+        "4 - Anonimo"
+    };
+    
+    int escolha = 0;
+    int ch = 0;
+    
+    while(ch != '\n') {
+        clear();
+        mvprintw(0, 0, "=== SELECIONAR TIPO DE NOTÍCIA ===");
+        
+        for(size_t i = 0; i < tipos.size(); i++) {
+            if((int)i == escolha) {
+                attron(A_REVERSE);
+                mvprintw(i + 2, 0, "> %s", tipos[i]);
+                attroff(A_REVERSE);
+            } else {
+                mvprintw(i + 2, 0, "  %s", tipos[i]);
+            }
+        }
+        
+        mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
+        refresh();
+        
+        ch = getch();
+        
+        switch(ch) {
+            case KEY_UP:
+                escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
+                break;
+        }
+    }
+    
+    tipoNoticiaAtual = escolha;
+    endwin();
+}
+
+void Controle::editarNoticiaAtual() {
+    
+    apagar(All); //Somente limpando o buffer
+    selecionarTipoNoticia();
+    
+    executarEditor();
+
+}
+
 string Controle::exibirNoticias(int ind) {
 
     string lista;
@@ -655,6 +650,19 @@ string Controle::getTipoNoticiaString(int tipo) {
 
 #ifdef __linux__
 
+Controle::Controle()
+{
+    textos.resize(rotulos.size(), L" ");
+
+    // Inicializa tipo de notícia padrão
+    tipoNoticiaAtual = 0; // Avisos por padrão
+}
+
+Controle::Controle(int tipoNoticia)
+{
+
+}
+
 void Controle::criarNoticia(int tipo) {
     unique_ptr<Noticia> novaNoticia;
     
@@ -675,14 +683,6 @@ void Controle::criarNoticia(int tipo) {
     
     novaNoticia->formatar();
     noticias.push_back(move(novaNoticia));
-}
-
-Controle::Controle()
-{
-    textos.resize(rotulos.size(), L" ");
-
-    // Inicializa tipo de notícia padrão
-    tipoNoticiaAtual = 0; // Avisos por padrão
 }
 
 void Controle::mover(int cx, int cy, wstring &buffer) {
@@ -876,9 +876,25 @@ int Controle::pesquisar() {
 
         }
         
-        mvprintw(nomes.size() + 4, 0, "Use setas para navegar, Enter para selecionar");
+        //mvprintw(nomes.size() + 4, 0, "Use setas para navegar, Enter para selecionar");
 
          move(1, x);
+
+          mvprintw(nomes.size() + 4, 0, "=== Nada Encontrado ===");
+
+        move(1, x);
+        
+        //Segurança para evitar uns crash de entrar num vetor vazio
+        if (!indv.empty()) {
+            if (escolha >= 0 && escolha < indv.size()) {
+                string aparece = exibirNoticias(indv.at(escolha)) + "\nUse setas para navegar, Enter para selecionar\n";
+                mvprintw(nomes.size() + 4, 0, aparece.c_str());
+            }
+            } else {
+            mvprintw(4, 0, "Nenhum resultado encontrado.");
+            escolha = 0;
+        }
+
          refresh();
         
         get_wch(&wch);
@@ -960,6 +976,7 @@ void Controle::carregarDadoIndice(int indice) {
             arquivo >> js; // Se botar um indice invalido dá erro
         } catch (json::parse_error& e) {
             std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+            throw range_error("Nenhum usuário foi criado!!!!!!!");
         }
         arquivo.close();
 

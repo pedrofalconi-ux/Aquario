@@ -53,6 +53,8 @@ private:
     char corpo[10000];
     char imagem[100];
 
+    vector<char*> textos;
+
     // Métodos auxiliares privados
     void mover(int cx, int cy, char* buffer, int buffer_size);
     void salvarDadoIndice(int contador);
@@ -84,16 +86,10 @@ private:
 public:
     // Declaração do Construtor
     Controle();
+    Controle(int tipoNoticia);
 
     // Declaração do método principal
-    #ifdef __linux__
     int pesquisar();
-    #endif
-
-    #if defined(_WIN32) || defined(_WIN64)
-    vector<string> listar();
-    int pesquisar();
-    #endif
 
     void animation();
     void executarEditor();
