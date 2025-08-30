@@ -37,7 +37,10 @@ void Data::setData(int d, int m, int a) {
         ano = year;
     }
     else if (a >= 0 && a <= year % 100) {
-        ano = year - (year % 100) + a; // Ex: se botar 24 ele joga a data para 2024
+        if (a == 0)
+            ano = year;
+        else
+            ano = year - (year % 100) + a; // Ex: se botar 24 ele joga a data para 2024
     }
     else if (a > year % 100 && a < 100) {
         ano = year - (year % 100) + (a-100); // Ex: se botar 95 ele joga a data para 1995
@@ -113,6 +116,11 @@ void Data::setHora(int h, int mi) {
     }
     else {
         minuto = mi;
+    }
+
+    if (h == 0 && mi == 0) {
+        hora = hour;
+        minuto = minute;
     }
 }
 

@@ -112,8 +112,10 @@ Controle::Controle() {
     autor[0] = '\0';
     corpo[0] = '\0';
     imagem[0] = '\0';
+    data[0] = '\0';
+    hora[0] = '\0';
 
-    textos = {titulo, subtitulo, autor, corpo, imagem};
+    textos = {titulo, subtitulo, autor, corpo, imagem, data, hora};
     
     // Inicializa tipo de notícia padrão
     tipoNoticiaAtual = 0; // Avisos por padrão
@@ -181,12 +183,13 @@ void Controle::executarEditor() {
     getmaxyx(stdscr, yMax, xMax);
     clear();
 
-    textos = {titulo, subtitulo, autor, corpo, imagem};
-    vector<const char*> rotulos = {"Titulo:    ", "Subtitulo: ", "Autor:     ", "Corpo:     ", "Imagem:    "};
-    vector<int> tamanhos = {50, 100, 50, 10000, 100};
+    textos = {titulo, subtitulo, autor, corpo, imagem, data, hora};
+    vector<const char*> rotulos = {"Titulo:    ", "Subtitulo: ", "Autor:     ", "Corpo:     ", "Imagem:    ", "Data:    ", "Hora:    "};
+    vector<int> tamanhos = {50, 100, 50, 10000, 100, 9, 5};
 
     int campo_atual = 0;
     ch = 0;
+
     while (ch != '\n') {
 
         for (size_t i = 0; i < textos.size(); i++) {
@@ -194,17 +197,19 @@ void Controle::executarEditor() {
             move(i, strlen(rotulos[i]) + strlen(textos[i]));
             clrtoeol();
         }
-        
+       
         mover(strlen(rotulos[campo_atual]), campo_atual, textos[campo_atual], tamanhos[campo_atual]);
-
+        
         if (ch == '\n') break;
         else if 
             (ch == KEY_UP) campo_atual = (campo_atual > 0) ? campo_atual - 1 : textos.size() - 1;
         else 
             campo_atual = (campo_atual < textos.size() - 1) ? campo_atual + 1 : 0;
+        
     }
 
     endwin();
+
 }
 
 void Controle::apagar(int t) {
@@ -224,6 +229,12 @@ void Controle::apagar(int t) {
         case Image:
             imagem[0] = '\0';
             break;
+        case Dataa:
+            data[0] = '\0';
+            break;
+        case Hour:
+            hora[0] = '\0';
+            break;
 
         case All:
             titulo[0] = '\0';
@@ -231,6 +242,8 @@ void Controle::apagar(int t) {
             autor[0] = '\0';
             corpo[0] = '\0';
             imagem[0] = '\0';
+            data[0] = '\0';
+            hora[0] = '\0';
             break;
         default:
             break;
@@ -246,6 +259,8 @@ void Controle::salvarDadoIndice(int contador) {
     js["Corpo"] = corpo;
     js["Imagem"] = imagem;
     js["Tipo"] = tipoNoticiaAtual;
+    js["Data"] = data;
+    js["Hora"] = hora;
 
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
@@ -285,6 +300,12 @@ void Controle::carregarDadoIndice(int indice) {
 
             temp = dados_lidos["Imagem"];
             strcpy(imagem, temp.c_str());
+
+            temp = dados_lidos["Data"];
+            strcpy(data, temp.c_str());
+
+            temp = dados_lidos["Hora"];
+            strcpy(hora, temp.c_str());
         } else {
             iniciar_a_Porra_Toda(); // Caso haja algum erro ele volta pra tela inicial
         }
@@ -332,6 +353,8 @@ void Controle::salvarDados() {
     js["Corpo"] = corpo;
     js["Imagem"] = imagem;
     js["Tipo"] = tipoNoticiaAtual;
+    js["Data"] = data;
+    js["Hora"] = hora;
 
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
@@ -383,6 +406,12 @@ void Controle::carregarDados() {
         
             temp = dados_lidos["Imagem"];
             strcpy(imagem, temp.c_str());
+
+            temp = dados_lidos["Data"];
+            strcpy(data, temp.c_str());
+
+            temp = dados_lidos["Hora"];
+            strcpy(hora, temp.c_str());
         
             tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
         
@@ -604,7 +633,6 @@ void Controle::editarNoticiaAtual() {
     selecionarTipoNoticia();
     
     executarEditor();
-
 }
 
 string Controle::exibirNoticias(int ind) {
@@ -613,7 +641,17 @@ string Controle::exibirNoticias(int ind) {
 
     noticias.clear(); //Limpa a lista antes de exibir
     carregarDados();
-    
+
+    #if defined (_WIN32) || (_WIN64)
+        int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+
+        sscanf(data, "%2d%2d%4d", &dia, &mes, &ano);
+        sscanf(hora, "%2d%2d", &h, &min);
+
+        noticias[ind]->setData(dia, mes, ano);
+        noticias[ind]->setHora(h, min);
+    #endif
+
     lista = "\n--- Notícia " + to_string(ind + 1) + " ---" + "\n"
           + "Tipo: " + getTipoNoticiaString(tipoNoticiaAtual) + "\n"
           + "Título: " + noticias[ind]->getTitulo() + "\n"

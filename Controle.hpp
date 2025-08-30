@@ -6,7 +6,9 @@
 #define Author 2
 #define Body 3
 #define Image 4
-#define All 5
+#define Dataa 5
+#define Hour 6
+#define All 7
 
 #include <iostream>
 #include <vector>
@@ -52,6 +54,8 @@ private:
     char autor[50];
     char corpo[10000];
     char imagem[100];
+    char data[20];
+    char hora[20];
 
     vector<char*> textos;
     json js;
