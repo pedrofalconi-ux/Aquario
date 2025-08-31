@@ -21,8 +21,6 @@ public:
     void setCorpo( std::string c) { corpo = c; }
     void setAutor( std::string a) { autor = a; }
     void setImagem( std::string i) { imagem = i; }
-    void setData(int d, int m, int a) { data.setData(d, m, a); }
-    void setHora(int h, int mi) { data.setHora(h, mi); }
     void setTipo(int t) { tipo = t; } 
     
     // Métodos para obter dados da notícia
