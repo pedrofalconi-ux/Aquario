@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "cstddef": "cpp",
+        "stdexcept": "cpp",
+        "any": "cpp",
+        "optional": "cpp",
+        "variant": "cpp"
+    }
+}

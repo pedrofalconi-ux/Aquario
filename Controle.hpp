@@ -69,7 +69,7 @@ private:
     #ifdef __linux__
     // Atributos da classe
     vector<wstring> textos;
-    vector<wstring> rotulos = {L"Titulo:    ", L"Subtitulo: ", L"Autor:     ", L"Corpo:     ", L"Imagem:    "};
+    vector<wstring> rotulos = {L"Titulo:    ", L"Subtitulo: ", L"Autor:     ", L"Corpo:     ", L"Imagem:    ", L"Data:      ", L"Hora:      "};
 
     wint_t wch;
 

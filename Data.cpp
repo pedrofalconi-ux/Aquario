@@ -1,8 +1,5 @@
 #include "Data.hpp"
 
-int dia, mes, ano, hora, minuto;
-int day, month, year, hour, minute;
-
 void Data::atualizarData() {
     #ifdef _WIN64
         // --- CÓDIGO PARA WINDOWS ---

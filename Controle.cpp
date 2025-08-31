@@ -80,6 +80,10 @@ void Controle::iniciar_a_Porra_Toda() {
                     {
                         problem = e.what();
                     }
+                    catch(int iu)
+                    {
+
+                    }
                     
                     break;
 
@@ -458,7 +462,6 @@ void Controle::criarNoticia(int tipo) {
 
     novaNoticia->setTipo(tipo);
     
-    #if defined (_WIN32) || (_WIN64)
         int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
 
         sscanf(data, "%2d%2d%4d", &dia, &mes, &ano);
@@ -466,7 +469,6 @@ void Controle::criarNoticia(int tipo) {
 
         novaNoticia->setData(dia, mes, ano);
         novaNoticia->setHora(h, min);
-    #endif
     
     novaNoticia->formatar();
     noticias.push_back(move(novaNoticia));
@@ -716,6 +718,7 @@ Controle::Controle()
 
 Controle::Controle(int tipoNoticia)
 {
+    
 
 }
 
@@ -736,6 +739,25 @@ void Controle::criarNoticia(int tipo) {
     novaNoticia->setAutor(wstringToUtf8(textos[Author]));
     novaNoticia->setCorpo(wstringToUtf8(textos[Body]));
     novaNoticia->setImagem(wstringToUtf8(textos[Image]));
+
+    novaNoticia->setTipo(tipo);
+
+    int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+
+    if(!(textos[Dataa].size() < 8))
+    {
+        dia = stoi(textos[Dataa].substr(0, 2));
+        mes = stoi(textos[Dataa].substr(2, 2));
+        ano = stoi(textos[Dataa].substr(4));
+    }
+    if(!(textos[Hour].size() < 4))
+    {
+        h = stoi(textos[Hour].substr(0, 2));
+        min = stoi(textos[Hour].substr(2));
+    }
+
+    novaNoticia->setData(dia, mes, ano);
+    novaNoticia->setHora(h, min);
     
     novaNoticia->formatar();
     noticias.push_back(move(novaNoticia));
@@ -864,7 +886,12 @@ void Controle::apagar(int t) {
         case Image:
             textos[Image].clear();
             break;
-
+        case Dataa:
+            textos[Dataa].clear();
+            break;
+        case Hour:
+            textos[Hour].clear();
+            break;
         case All:
             textos.clear();
             textos.resize(rotulos.size(), L" ");
@@ -905,8 +932,8 @@ int Controle::pesquisar() {
         nomes.clear();
         indv.clear();
 
-        if (ch == '\033') {
-            iniciar_a_Porra_Toda(); //Volta para a tela inicial caso o usuario clique em esc
+        if (wch == L'\033') {
+            throw 8000;
         }
 
         for(int i = 0; i < noticias.size(); i++)
@@ -1052,9 +1079,12 @@ void Controle::carregarDadoIndice(int indice) {
             textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
 
             textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
-        } else {
-            iniciar_a_Porra_Toda(); // Caso haja algum erro ele volta pra tela inicial
-        }
+
+            textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
+
+            textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
+        }else
+            throw 9000;
 }
 
 void Controle::editarNoticia(int indice) {
@@ -1098,6 +1128,8 @@ void Controle::salvarDados() {
     js["Autor"] = wstringToUtf8(textos[Author]);
     js["Corpo"] = wstringToUtf8(textos[Body]);
     js["Imagem"] = wstringToUtf8(textos[Image]);
+    js["Data"] = wstringToUtf8(textos[Dataa]);
+    js["Hora"] = wstringToUtf8(textos[Hour]);
     js["Tipo"] = tipoNoticiaAtual;
 
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
@@ -1146,9 +1178,13 @@ void Controle::carregarDados() {
 
             textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
 
+            textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
+
+            textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
+
             tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
 
-            criarNoticia(tipoNoticiaAtual);
+            criarNoticia(tipoNoticiaAtual); 
         }
     }
 }
