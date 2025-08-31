@@ -1,9 +1,7 @@
 #include "Avisos.hpp"
 
 void Avisos::formatar() {
-    data.setData(0, 0, 0); 
-    data.setHora(0, 0);    
-    
+    Noticia::formatar();
     if (achadosPerdido.empty()) {
         achadosPerdido = "Aviso Geral";
     }

@@ -306,8 +306,6 @@ void Controle::carregarDadoIndice(int indice) {
 
             temp = dados_lidos["Hora"];
             strcpy(hora, temp.c_str());
-        } else {
-            iniciar_a_Porra_Toda(); // Caso haja algum erro ele volta pra tela inicial
         }
 }
 
@@ -319,6 +317,7 @@ void Controle::editarNoticia(int indice) {
 
 void Controle::salvarDados() {
     ofstream arquivo;
+    Data dataFormt;
     
     int contador = 0;
     json indice;
@@ -346,6 +345,17 @@ void Controle::salvarDados() {
     indice["Indice"] = contador;
     of_indice << indice;
     of_indice.close();
+
+    int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+
+    sscanf(data, "%2d%2d%4d", &dia, &mes, &ano);
+    sscanf(hora, "%2d%2d", &h, &min);
+
+    dataFormt.setData(dia, mes, ano);
+    dataFormt.setHora(h, min);
+
+    strcpy(data, dataFormt.getData().c_str());
+    strcpy(hora, dataFormt.getHora().c_str());
 
     js["Titulo"] = titulo;
     js["Subtitulo"] = subtitulo;
@@ -416,6 +426,7 @@ void Controle::carregarDados() {
             tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
         
             criarNoticia(tipoNoticiaAtual);
+
         }
     }
 }
@@ -444,6 +455,18 @@ void Controle::criarNoticia(int tipo) {
     novaNoticia->setAutor(string(autor));
     novaNoticia->setCorpo(string(corpo));
     novaNoticia->setImagem(string(imagem));
+
+    novaNoticia->setTipo(tipo);
+    
+    #if defined (_WIN32) || (_WIN64)
+        int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+
+        sscanf(data, "%2d%2d%4d", &dia, &mes, &ano);
+        sscanf(hora, "%2d%2d", &h, &min);
+
+        novaNoticia->setData(dia, mes, ano);
+        novaNoticia->setHora(h, min);
+    #endif
     
     novaNoticia->formatar();
     noticias.push_back(move(novaNoticia));
@@ -478,8 +501,10 @@ int Controle::pesquisar() {
         nomes.clear();
         indv.clear();
 
+        // Voltar caso clique Esc
         if (ch == '\033') {
-            iniciar_a_Porra_Toda(); //Volta para a tela inicial caso o usuario clique em esc
+            endwin();
+            return -1; 
         }
 
         // Filtra notícias
@@ -618,8 +643,6 @@ void Controle::selecionarTipoNoticia() {
             case KEY_DOWN:
                 escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
                 break;
-            case '\033':
-                iniciar_a_Porra_Toda(); //Esc reinicia
         }
     }
     
@@ -639,23 +662,10 @@ string Controle::exibirNoticias(int ind) {
 
     string lista;
 
-    noticias.clear(); //Limpa a lista antes de exibir
-    carregarDados();
-
-    #if defined (_WIN32) || (_WIN64)
-        int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
-
-        sscanf(data, "%2d%2d%4d", &dia, &mes, &ano);
-        sscanf(hora, "%2d%2d", &h, &min);
-
-        noticias[ind]->setData(dia, mes, ano);
-        noticias[ind]->setHora(h, min);
-    #endif
-
     lista = "\n--- Notícia " + to_string(ind + 1) + " ---" + "\n"
-          + "Tipo: " + getTipoNoticiaString(tipoNoticiaAtual) + "\n"
-          + "Título: " + noticias[ind]->getTitulo() + "\n"
+          + "Tipo: " + getTipoNoticiaString(noticias[ind]->getTipo()) + "\n"
           + "Autor: " + noticias[ind]->getAutor() + "\n"
+          + "Título: " + noticias[ind]->getTitulo() + "\n"
           + "Data: " + noticias[ind]->getDataFormatada() + "\n"
           + "Hora: " + noticias[ind]->getHoraFormatada() + "\n";
     

@@ -9,7 +9,7 @@ private:
     std::string achadosPerdido;
 
 public:
-    void formatar() override;
+    void formatar();
     void exibir() override;
     
     // Métodos específicos para Avisos

@@ -25,8 +25,10 @@ public:
         void atualizarData();
     }
 
-    string getData() const;
-    string getHora() const;
+    string getDataFormatada() const;
+    string getHoraFormatada() const;
+    string getData();
+    string getHora();
     string getDataDeHoje();
     string getHoraDeHoje();
 

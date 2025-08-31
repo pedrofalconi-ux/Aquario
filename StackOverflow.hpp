@@ -5,7 +5,6 @@
 
 class StackOverflow : public Noticia {
 public:
-    void formatar() override;
     void exibir() override;
 };
 

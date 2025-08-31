@@ -6,7 +6,6 @@
 class Anonimo : public Noticia {
 public:
     Anonimo();
-    void formatar() override;
     void exibir() override;
 };
 
