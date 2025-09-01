@@ -105,6 +105,10 @@ void Controle::iniciar_a_Porra_Toda() {
                     {
                         problem = e.what();
                     }
+                    catch(int oi)
+                    {
+
+                    }
                     break;
                 
                 case 3:
@@ -280,6 +284,11 @@ void Controle::gerarHTML() {
     arquivo << "</html>\n";
     arquivo.close();
     cout << "HTML gerado: noticias.html" << endl;
+
+    #ifdef __linux__
+        string comand = "xdg-open " + string("noticias.html");
+        system(comand.c_str());
+    #endif
 }
 
 string Controle::getTipoNoticiaString(int tipo) {

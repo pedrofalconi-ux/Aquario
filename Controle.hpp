@@ -15,6 +15,7 @@
 #include <string.h>
 #include <fstream>
 #include <filesystem>
+#include <cstdlib>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include "Libs/curses.h" //Por o -> -L./Libs -l:pdcurses.a ao compilar
