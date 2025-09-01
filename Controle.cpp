@@ -237,25 +237,43 @@ void Controle::gerarHTML() {
     arquivo << "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n";
     arquivo << "    <title>Aquário - Notícias</title>\n";
     arquivo << "    <style>\n";
-    arquivo << "        body { font-family: Arial, sans-serif; background: #eaf6fb; margin: 0; padding: 0; }\n";
-    arquivo << "        .container { max-width: 800px; margin: 40px auto; background: #fff; box-shadow: 0 2px 8px #b3c6e6; border-radius: 8px; padding: 32px; }\n";
-    arquivo << "        h1 { text-align: center; color: #153e75; margin-bottom: 32px; } /* azul marinho */\n";
-    arquivo << "        .noticia { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #b3c6e6; }\n";
-    arquivo << "        .noticia h2 { color: #2188b6; margin: 0 0 8px 0; } /* azul suave próximo ao ciano */\n";
-    arquivo << "        .noticia p { color: #3a5a7a; margin: 4px 0; }\n";
-    arquivo << "        .autor { font-size: 0.95em; color: #2188b6; }\n";
+    arquivo << "        body { font-family: Arial, sans-serif; background: #153e75; margin: 0; padding: 0; color: #fff; } /* azul marinho, texto branco */\n";
+    arquivo << "        .container { max-width: 900px; margin: 40px auto; background: rgba(21,62,117,0.95); box-shadow: 0 2px 16px #0d1c33; border-radius: 12px; padding: 40px 32px; }\n";
+    arquivo << "        h1 { text-align: center; color: #eaf6fb; margin-bottom: 40px; font-size: 2.5em; letter-spacing: 2px; }\n";
+    arquivo << "        .noticias-lista { display: flex; flex-direction: column; gap: 32px; }\n";
+    arquivo << "        .noticia { background: #2188b6; border-radius: 8px; padding: 24px 20px; box-shadow: 0 1px 8px #153e75; } /* azul suave próximo ao ciano */\n";
+    arquivo << "        .noticia h2 { color: #eaf6fb; margin: 0 0 12px 0; font-size: 1.5em; word-break: break-word; }\n";
+    arquivo << "        .noticia .autor { font-size: 1em; color: #eaf6fb; margin-bottom: 10px; }\n";
+    arquivo << "        .noticia .corpo { color: #fff; font-size: 1.1em; line-height: 1.7; word-break: break-word; white-space: pre-wrap; }\n";
+    arquivo << "        @media (max-width: 600px) { .container { padding: 10px; } .noticia { padding: 12px 8px; } }\n";
     arquivo << "    </style>\n";
     arquivo << "</head>\n";
     arquivo << "<body>\n";
     arquivo << "    <div class='container'>\n";
     arquivo << "        <h1>Sistema Aquário</h1>\n";
+    arquivo << "        <div class='noticias-lista'>\n";
     for(size_t i = 0; i < noticias.size(); i++) {
-        arquivo << "        <div class='noticia'>\n";
-        arquivo << "            <h2>" << noticias[i]->getTitulo() << "</h2>\n";
-        arquivo << "            <p class='autor'><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>\n";
-        arquivo << "            <p>" << noticias[i]->getCorpo() << "</p>\n";
-        arquivo << "        </div>\n";
+        arquivo << "            <div class='noticia'>\n";
+        arquivo << "                <h2>" << noticias[i]->getTitulo() << "</h2>\n";
+    arquivo << "                <div class='autor'><strong>Autor:</strong> " << noticias[i]->getAutor() << "</div>\n";
+        arquivo << "                <div class='datahora'>";
+        string dataStr = noticias[i]->getData();
+        string horaStr = noticias[i]->getHora();
+        // Formatar data: DDMMYYYY -> DD/MM/YYYY
+        if (dataStr.size() == 8) {
+            dataStr = dataStr.substr(0,2) + "/" + dataStr.substr(2,2) + "/" + dataStr.substr(4,4);
+        }
+        // Formatar hora: HHMM -> HH:MM
+        if (horaStr.size() == 4) {
+            horaStr = horaStr.substr(0,2) + ":" + horaStr.substr(2,2);
+        }
+        arquivo << "<span style='margin-right:16px'><strong>Data:</strong> " << dataStr << "</span>";
+        arquivo << "<span><strong>Hora:</strong> " << horaStr << "</span>";
+        arquivo << "                </div>\n";
+    arquivo << "                <div class='corpo'>" << noticias[i]->getCorpo() << "</div>\n";
+        arquivo << "            </div>\n";
     }
+    arquivo << "        </div>\n";
     arquivo << "    </div>\n";
     arquivo << "</body>\n";
     arquivo << "</html>\n";

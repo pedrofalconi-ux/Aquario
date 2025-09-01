@@ -15,6 +15,8 @@ protected:
     int tipo; // ADICIONADO: Variável para guardar o tipo da notícia
 
 public:
+    std::string getDataFormatada() const { return data.getDataFormatada(); }
+    std::string getHoraFormatada() const { return data.getHoraFormatada(); }
     // Métodos para definir dados da notícia
     void setTitulo( std::string t) { titulo = t; }
     void setSubtitulo( std::string s) { subtitulo = s; }

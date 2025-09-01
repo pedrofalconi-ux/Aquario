@@ -5,32 +5,75 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Aquário - Notícias</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #eaf6fb; margin: 0; padding: 0; }
-        .container { max-width: 800px; margin: 40px auto; background: #fff; box-shadow: 0 2px 8px #b3c6e6; border-radius: 8px; padding: 32px; }
-        h1 { text-align: center; color: #153e75; margin-bottom: 32px; } /* azul marinho */
-        .noticia { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #b3c6e6; }
-        .noticia h2 { color: #2188b6; margin: 0 0 8px 0; } /* azul suave próximo ao ciano */
-        .noticia p { color: #3a5a7a; margin: 4px 0; }
-        .autor { font-size: 0.95em; color: #2188b6; }
+        body { font-family: Arial, sans-serif; background: #153e75; margin: 0; padding: 0; color: #fff; } /* azul marinho, texto branco */
+        .container { max-width: 900px; margin: 40px auto; background: rgba(21,62,117,0.95); box-shadow: 0 2px 16px #0d1c33; border-radius: 12px; padding: 40px 32px; }
+        h1 { text-align: center; color: #eaf6fb; margin-bottom: 40px; font-size: 2.5em; letter-spacing: 2px; }
+        .noticias-lista { display: flex; flex-direction: column; gap: 32px; }
+        .noticia { background: #2188b6; border-radius: 8px; padding: 24px 20px; box-shadow: 0 1px 8px #153e75; } /* azul suave próximo ao ciano */
+        .noticia h2 { color: #eaf6fb; margin: 0 0 12px 0; font-size: 1.5em; word-break: break-word; }
+        .noticia .autor { font-size: 1em; color: #eaf6fb; margin-bottom: 10px; }
+        .noticia .corpo { color: #fff; font-size: 1.1em; line-height: 1.7; word-break: break-word; white-space: pre-wrap; }
+        @media (max-width: 600px) { .container { padding: 10px; } .noticia { padding: 12px 8px; } }
     </style>
 </head>
 <body>
     <div class='container'>
         <h1>Sistema Aquário</h1>
-        <div class='noticia'>
-            <h2>gustavo esta namorando henrique baltar</h2>
-            <p class='autor'><strong>Autor:</strong> segundo</p>
-            <p>sim</p>
-        </div>
-        <div class='noticia'>
-            <h2>dfvsdvd</h2>
-            <p class='autor'><strong>Autor:</strong> vdvdsv</p>
-            <p>dvvdvs</p>
-        </div>
-        <div class='noticia'>
-            <h2>1231231</h2>
-            <p class='autor'><strong>Autor:</strong> sdfas</p>
-            <p>asdasd</p>
+        <div class='noticias-lista'>
+            <div class='noticia'>
+                <h2>gustavo esta namorando henrique baltar</h2>
+                <div class='autor'><strong>Autor:</strong> segundo</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:33</span>                </div>
+                <div class='corpo'>sim</div>
+            </div>
+            <div class='noticia'>
+                <h2>dfvsdvd</h2>
+                <div class='autor'><strong>Autor:</strong> vdvdsv</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:33</span>                </div>
+                <div class='corpo'>dvvdvs</div>
+            </div>
+            <div class='noticia'>
+                <h2>bom dia</h2>
+                <div class='autor'><strong>Autor:</strong> Anônimo</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:33</span>                </div>
+                <div class='corpo'></div>
+            </div>
+            <div class='noticia'>
+                <h2>alouuu</h2>
+                <div class='autor'><strong>Autor:</strong> Anônimo</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:03</span>                </div>
+                <div class='corpo'></div>
+            </div>
+            <div class='noticia'>
+                <h2>teve tanto try catch que é mais facil seu pc crashar</h2>
+                <div class='autor'><strong>Autor:</strong> piada</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 22:22</span>                </div>
+                <div class='corpo'>segundo fez essa piada</div>
+            </div>
+            <div class='noticia'>
+                <h2>O Aquário chegou!</h2>
+                <div class='autor'><strong>Autor:</strong> COnnecta CI</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:09</span>                </div>
+                <div class='corpo'>O Aquário é, de fato, um projeto open source desenvolvido no Centro de Informática (CI) da Universidade Federal da Paraíba (UFPB).</div>
+            </div>
+            <div class='noticia'>
+                <h2></h2>
+                <div class='autor'><strong>Autor:</strong> Anônimo</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:09</span>                </div>
+                <div class='corpo'></div>
+            </div>
+            <div class='noticia'>
+                <h2>Vídeo</h2>
+                <div class='autor'><strong>Autor:</strong> Imagem</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:09</span>                </div>
+                <div class='corpo'></div>
+            </div>
+            <div class='noticia'>
+                <h2>v</h2>
+                <div class='autor'><strong>Autor:</strong> v</div>
+                <div class='datahora'><span style='margin-right:16px'><strong>Data:</strong> 01/09/2025</span><span><strong>Hora:</strong> 10:25</span>                </div>
+                <div class='corpo'></div>
+            </div>
         </div>
     </div>
 </body>

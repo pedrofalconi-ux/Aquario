@@ -134,7 +134,7 @@ string Data::getDataFormatada() const {
 string Data::getHoraFormatada() const {
     stringstream tempo;
     // Formatação
-    tempo << setw(2) << setfill('0') << hora << ":"
+    tempo << setw(2) << setfill('0') << hora << ':'
           << setw(2) << setfill('0') << minuto;
 
     return tempo.str();
