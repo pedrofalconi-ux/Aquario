@@ -219,9 +219,9 @@ string Controle::exibirNoticias(int ind) {
             break;
     }
 
-    lista += + "Data: " + noticias[ind]->getDataFormatada() + "\n"
-            + "Hora: " + noticias[ind]->getHoraFormatada() + "\n";
-    
+    lista += + "Data: " + noticias[ind]->getData().substr(0, 2) + "/" + noticias[ind]->getData().substr(2, 2) + "/" + noticias[ind]->getData().substr(4) + "\n"
+            + "Hora: " + noticias[ind]->getHora().substr(0, 2) + ":" + noticias[ind]->getHora().substr(2) + "\n";
+
     return lista;
 }
 
@@ -255,22 +255,23 @@ void Controle::gerarHTML() {
     for(size_t i = 0; i < noticias.size(); i++) {
         arquivo << "            <div class='noticia'>\n";
         arquivo << "                <h2>" << noticias[i]->getTitulo() << "</h2>\n";
-    arquivo << "                <div class='autor'><strong>Autor:</strong> " << noticias[i]->getAutor() << "</div>\n";
+        arquivo << "                <div class='subtitulo'><strong>Subtítulo:</strong> " << noticias[i]->getSubtitulo() << "</div>\n";
+        arquivo << "                <div class='autor'><strong>Autor:</strong> " << noticias[i]->getAutor() << "</div>\n";
+        arquivo << "                <div class='tipo'><strong>Tipo:</strong> " << getTipoNoticiaString(noticias[i]->getTipo()) << "</div>\n";
         arquivo << "                <div class='datahora'>";
         string dataStr = noticias[i]->getData();
         string horaStr = noticias[i]->getHora();
-        // Formatar data: DDMMYYYY -> DD/MM/YYYY
         if (dataStr.size() == 8) {
             dataStr = dataStr.substr(0,2) + "/" + dataStr.substr(2,2) + "/" + dataStr.substr(4,4);
         }
-        // Formatar hora: HHMM -> HH:MM
         if (horaStr.size() == 4) {
             horaStr = horaStr.substr(0,2) + ":" + horaStr.substr(2,2);
         }
         arquivo << "<span style='margin-right:16px'><strong>Data:</strong> " << dataStr << "</span>";
         arquivo << "<span><strong>Hora:</strong> " << horaStr << "</span>";
         arquivo << "                </div>\n";
-    arquivo << "                <div class='corpo'>" << noticias[i]->getCorpo() << "</div>\n";
+        arquivo << "                <div class='corpo'><strong>Corpo:</strong> " << noticias[i]->getCorpo() << "</div>\n";
+        arquivo << "                <div class='imagem'><strong>Imagem:</strong> " << noticias[i]->getImagem() << "</div>\n";
         arquivo << "            </div>\n";
     }
     arquivo << "        </div>\n";
@@ -1198,10 +1199,10 @@ int Controle::pesquisar() {
             string linha = ((int)i == escolha ? "> " : "  ") + nomes[i];
             if((int)i == escolha) {
                 attron(A_REVERSE);
-                mvprintw(i + 3, 0, linha.c_str());
+                mvprintw(i + 3, 0, "%s", linha.c_str());
                 attroff(A_REVERSE);
             } else {
-                mvprintw(i + 3, 0, linha.c_str());
+                mvprintw(i + 3, 0, "%s", linha.c_str());
             }
 
         }
@@ -1218,7 +1219,7 @@ int Controle::pesquisar() {
         if (!indv.empty()) {
             if (escolha >= 0 && escolha < indv.size()) {
                 string aparece = exibirNoticias(indv.at(escolha)) + "\nUse setas para navegar, Enter para selecionar\n";
-                mvprintw(nomes.size() + 4, 0, aparece.c_str());
+                mvprintw(nomes.size() + 4, 0, "%s", aparece.c_str());
             }
             } else {
             mvprintw(4, 0, "Nenhum resultado encontrado.");
