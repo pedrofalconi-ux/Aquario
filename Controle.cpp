@@ -226,23 +226,40 @@ string Controle::exibirNoticias(int ind) {
 }
 
 void Controle::gerarHTML() {
+    noticias.clear();
+    carregarDados();
+
     ofstream arquivo("noticias.html");
-    
-    arquivo << "<!DOCTYPE html>" << endl;
-    arquivo << "<html><head><title>Aquário - Notícias</title></head>" << endl;
-    arquivo << "<body><h1>Sistema Aquário</h1>" << endl;
-    
+    arquivo << "<!DOCTYPE html>\n";
+    arquivo << "<html lang='pt-br'>\n";
+    arquivo << "<head>\n";
+    arquivo << "    <meta charset='UTF-8'>\n";
+    arquivo << "    <meta name='viewport' content='width=device-width, initial-scale=1.0'>\n";
+    arquivo << "    <title>Aquário - Notícias</title>\n";
+    arquivo << "    <style>\n";
+    arquivo << "        body { font-family: Arial, sans-serif; background: #eaf6fb; margin: 0; padding: 0; }\n";
+    arquivo << "        .container { max-width: 800px; margin: 40px auto; background: #fff; box-shadow: 0 2px 8px #b3c6e6; border-radius: 8px; padding: 32px; }\n";
+    arquivo << "        h1 { text-align: center; color: #153e75; margin-bottom: 32px; } /* azul marinho */\n";
+    arquivo << "        .noticia { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #b3c6e6; }\n";
+    arquivo << "        .noticia h2 { color: #2188b6; margin: 0 0 8px 0; } /* azul suave próximo ao ciano */\n";
+    arquivo << "        .noticia p { color: #3a5a7a; margin: 4px 0; }\n";
+    arquivo << "        .autor { font-size: 0.95em; color: #2188b6; }\n";
+    arquivo << "    </style>\n";
+    arquivo << "</head>\n";
+    arquivo << "<body>\n";
+    arquivo << "    <div class='container'>\n";
+    arquivo << "        <h1>Sistema Aquário</h1>\n";
     for(size_t i = 0; i < noticias.size(); i++) {
-        arquivo << "<div class='noticia'>" << endl;
-        arquivo << "<h2>" << noticias[i]->getTitulo() << "</h2>" << endl;
-        arquivo << "<p><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>" << endl;
-        arquivo << "<p>" << noticias[i]->getCorpo() << "</p>" << endl;
-        arquivo << "</div><hr>" << endl;
+        arquivo << "        <div class='noticia'>\n";
+        arquivo << "            <h2>" << noticias[i]->getTitulo() << "</h2>\n";
+        arquivo << "            <p class='autor'><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>\n";
+        arquivo << "            <p>" << noticias[i]->getCorpo() << "</p>\n";
+        arquivo << "        </div>\n";
     }
-    
-    arquivo << "</body></html>" << endl;
+    arquivo << "    </div>\n";
+    arquivo << "</body>\n";
+    arquivo << "</html>\n";
     arquivo.close();
-    
     cout << "HTML gerado: noticias.html" << endl;
 }
 
@@ -920,22 +937,47 @@ void Controle::criarNoticia(int tipo) {
             break;
     }
 
-    try{
+    
     if(!(textos[ind_data].size() < 8))
     {
+        try{
         dia = stoi(textos[ind_data].substr(0, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
         mes = stoi(textos[ind_data].substr(2, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
         ano = stoi(textos[ind_data].substr(4));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
     }
     if(!(textos[ind_hour].size() < 4))
-    {
+    {   
+        try{
         h = stoi(textos[ind_hour].substr(0, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
         min = stoi(textos[ind_hour].substr(2));
-    }
-    }
-    catch(exception& r)
-    {
-        cerr << r.what() << endl;
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
     }
     novaNoticia->setData(dia, mes, ano);
     novaNoticia->setHora(h, min);
@@ -944,6 +986,7 @@ void Controle::criarNoticia(int tipo) {
     noticias.push_back(move(novaNoticia));
 }
 
+    
 void Controle::mover(int cx, int cy, wstring &buffer) {
     refresh();
     int i = (int)buffer.size();
@@ -1376,36 +1419,89 @@ void Controle::salvarDados() {
     js["Autor"] = wstringToUtf8(textos[Author]);
     js["Corpo"] = wstringToUtf8(textos[Body]);
     js["Imagem"] = wstringToUtf8(textos[Image]);
+    int ind_data = 5;
+    int ind_hour = 6;
 
     switch(tipoNoticiaAtual)
     {
         case 0:
             js["AchadosEPerdidos"] = wstringToUtf8(textos[5]);
             js["Problemas"] = wstringToUtf8(textos[6]);
-            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
-            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            js["Data"] = wstringToUtf8(textos[ind_data + 2]);
+            js["Hora"] = wstringToUtf8(textos[ind_hour + 2]);
             break;
         case 1:
             js["Fofoca"] = wstringToUtf8(textos[5]);
-            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
-            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            js["Data"] = wstringToUtf8(textos[ind_data + 1]);
+            js["Hora"] = wstringToUtf8(textos[ind_hour + 1]);
             break;
         case 2:
             js["Piada"] = wstringToUtf8(textos[5]);
-            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
-            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            js["Data"] = wstringToUtf8(textos[ind_data + 1]);
+            js["Hora"] = wstringToUtf8(textos[ind_hour + 1]);
             break;
         case 3:
             js["Topico"] = wstringToUtf8(textos[5]);
             js["Pergunta"] = wstringToUtf8(textos[6]);
-            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
-            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            js["Data"] = wstringToUtf8(textos[ind_data + 2]);
+            js["Hora"] = wstringToUtf8(textos[ind_hour + 2]);
             break;
         default:
-            js["Data"] = wstringToUtf8(textos[Dataa]);
-            js["Hora"] = wstringToUtf8(textos[Hour]);
+            js["Data"] = wstringToUtf8(textos[ind_data]);
+            js["Hora"] = wstringToUtf8(textos[ind_hour]);
             break;
     }
+
+    int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+    
+    Data dat;
+
+    if(!(textos[ind_data].size() < 8))
+    {
+        try{
+        dia = stoi(textos[ind_data].substr(0, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
+        mes = stoi(textos[ind_data].substr(2, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
+        ano = stoi(textos[ind_data].substr(4));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+    }
+    if(!(textos[ind_hour].size() < 4))
+    {   
+        try{
+        h = stoi(textos[ind_hour].substr(0, 2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+        try{
+        min = stoi(textos[ind_hour].substr(2));
+        }
+        catch(exception& r)
+        {
+            cerr << r.what() << endl;
+        }
+    }
+    dat.setData(dia, mes, ano);
+    dat.setHora(h, min);
+
+    js["Data"] = dat.getData();
+    js["Hora"] = dat.getHora();
 
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
