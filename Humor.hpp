@@ -6,6 +6,10 @@
 class Humor : public Noticia {
 public:
     void exibir() override;
+    void setPiada(const string pia);
+    string exibirMais();
+private:
+    string piada;
 };
-
+    
 #endif

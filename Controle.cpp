@@ -20,8 +20,9 @@ void Controle::iniciar_a_Porra_Toda() {
     do {
         
         vector<const char*> tipos = {
-            "Criar Nova Notícia",
-            "Exibir Todas as Notícias", 
+             "Criar Nova Notícia",
+            "Exibir Todas as Notícias",
+            "Deletar Notícia", 
             "Gerar HTML",
             "Sair"
         };
@@ -65,9 +66,16 @@ void Controle::iniciar_a_Porra_Toda() {
                 case 0:
                     problem.clear();
                     cout << "\n--- CRIANDO NOVA NOTÍCIA ---" << endl;
+                    try
+                    {
                     editarNoticiaAtual();
                     salvarDados();
                     cout << "Notícia criada com sucesso!" << endl;
+                    }
+                    catch(int ui)
+                    {
+
+                    }
                     break;
 
                 case 1:
@@ -88,10 +96,22 @@ void Controle::iniciar_a_Porra_Toda() {
                     break;
 
                 case 2:
+                    problem.clear();
+                    try
+                    {
+                        deletarNoticia();
+                    }
+                    catch(range_error e)
+                    {
+                        problem = e.what();
+                    }
+                    break;
+                
+                case 3:
                     gerarHTML();
                     break;
 
-                case 3:
+                case 4:
                     cout << "Encerrando sistema..." << endl;
                     break;
 
@@ -103,9 +123,214 @@ void Controle::iniciar_a_Porra_Toda() {
                 system("cls");
             #endif
 
-    } while (opcao != 3);
+    } while (opcao != 4);
 
     endwin();
+}
+
+void Controle::selecionarTipoNoticia() {
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    clear();
+    
+    vector<const char*> tipos = {
+        "0 - Avisos",
+        "1 - Fofoca", 
+        "2 - Humor",
+        "3 - StackOverflow",
+        "4 - Anonimo"
+    };
+    
+    int escolha = 0;
+    int ch = 0;
+    
+    while(ch != '\n') {
+        clear();
+        mvprintw(0, 0, "=== SELECIONAR TIPO DE NOTÍCIA ===");
+        
+        for(size_t i = 0; i < tipos.size(); i++) {
+            if((int)i == escolha) {
+                attron(A_REVERSE);
+                mvprintw(i + 2, 0, "> %s", tipos[i]);
+                attroff(A_REVERSE);
+            } else {
+                mvprintw(i + 2, 0, "  %s", tipos[i]);
+            }
+        }
+        
+        mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
+        refresh();
+        
+        ch = getch();
+        
+        switch(ch) {
+            case KEY_UP:
+                escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
+                break;
+            case KEY_DOWN:
+                escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
+                break;
+            case L'\033':
+                throw 6;
+                break;
+        }
+    }
+    
+    tipoNoticiaAtual = escolha;
+    endwin();
+}
+
+void Controle::editarNoticiaAtual() {
+    
+    apagar(All); //Somente limpando o buffer
+    selecionarTipoNoticia();
+
+    Inicializar(tipoNoticiaAtual);
+    
+    executarEditor();
+}
+
+string Controle::exibirNoticias(int ind) {
+
+    string lista;
+
+    lista = "\n--- Notícia " + to_string(ind + 1) + " ---" + "\n"
+          + "Tipo: " + getTipoNoticiaString(noticias[ind]->getTipo()) + "\n"
+          + "Autor: " + noticias[ind]->getAutor() + "\n"
+          + "Título: " + noticias[ind]->getTitulo() + "\n";
+
+    auto* temp_ptr = noticias[ind].get();
+
+    switch(noticias[ind]->getTipo())
+    {
+        case 0:
+            lista += dynamic_cast<Avisos*>(temp_ptr)->exibirMais();
+            break;
+        case 1:
+            lista += dynamic_cast<Fofoca*>(temp_ptr)->exibirMais();
+            break;
+        case 2:
+            lista += dynamic_cast<Humor*>(temp_ptr)->exibirMais();
+            break;
+        case 3:
+            lista += dynamic_cast<StackOverflow*>(temp_ptr)->exibirMais();
+            break;
+    }
+
+    lista += + "Data: " + noticias[ind]->getDataFormatada() + "\n"
+            + "Hora: " + noticias[ind]->getHoraFormatada() + "\n";
+    
+    return lista;
+}
+
+void Controle::gerarHTML() {
+    ofstream arquivo("noticias.html");
+    
+    arquivo << "<!DOCTYPE html>" << endl;
+    arquivo << "<html><head><title>Aquário - Notícias</title></head>" << endl;
+    arquivo << "<body><h1>Sistema Aquário</h1>" << endl;
+    
+    for(size_t i = 0; i < noticias.size(); i++) {
+        arquivo << "<div class='noticia'>" << endl;
+        arquivo << "<h2>" << noticias[i]->getTitulo() << "</h2>" << endl;
+        arquivo << "<p><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>" << endl;
+        arquivo << "<p>" << noticias[i]->getCorpo() << "</p>" << endl;
+        arquivo << "</div><hr>" << endl;
+    }
+    
+    arquivo << "</body></html>" << endl;
+    arquivo.close();
+    
+    cout << "HTML gerado: noticias.html" << endl;
+}
+
+string Controle::getTipoNoticiaString(int tipo) {
+    switch(tipo) {
+        case 0: return "Avisos";
+        case 1: return "Fofoca";
+        case 2: return "Humor"; 
+        case 3: return "StackOverflow";
+        case 4: return "Anonimo";
+        default: return "Desconhecido";
+    }
+}
+
+void Controle::deletarNoticia() {
+    int indiceParaDeletar = pesquisar();
+
+    if (indiceParaDeletar == -1) {
+        throw range_error("Nenhuma noticia foi criada!!!!");
+    }
+
+    // Inicia uma tela de confirmação temporária
+    initscr();
+    cbreak();
+    noecho();
+    clear();
+    mvprintw(0, 0, "Tem certeza que deseja deletar a notícia %d e reindexar? (s/n)", indiceParaDeletar);
+    refresh();
+
+    int confirmacao = getch();
+    
+    endwin();
+
+    if (confirmacao != 's' && confirmacao != 'S') {
+        refresh();
+        cbreak();
+        noecho();
+        keypad(stdscr, TRUE);
+        return;
+    }
+
+    json indiceJson;
+    int maxIndice = -1;
+    ifstream if_indice("./Pasta/Indice.json");
+    if (if_indice.is_open()) {
+        if_indice >> indiceJson;
+        if_indice.close();
+        if (indiceJson.count("Indice")) {
+            maxIndice = indiceJson["Indice"].get<int>();
+        }
+    }
+
+    if (maxIndice == -1) {
+        refresh();
+        cbreak();
+        noecho();
+        keypad(stdscr, TRUE);
+        return; 
+    }
+
+    string nomeArquivoParaDeletar = "./Pasta/arquivo" + to_string(indiceParaDeletar) + ".json";
+
+    try {
+        if (fs::exists(nomeArquivoParaDeletar)) {
+            fs::remove(nomeArquivoParaDeletar);
+        }
+
+        for (int i = indiceParaDeletar; i < maxIndice; ++i) {
+            string oldName = "./Pasta/arquivo" + to_string(i + 1) + ".json";
+            string newName = "./Pasta/arquivo" + to_string(i) + ".json";
+            if (fs::exists(oldName)) {
+                fs::rename(oldName, newName);
+            }
+        }
+
+        ofstream of_indice("./Pasta/Indice.json");
+        indiceJson["Indice"] = maxIndice - 1;
+        of_indice << indiceJson;
+        of_indice.close();
+
+    } catch (const std::filesystem::filesystem_error& e) {
+        
+    }
+
+    refresh();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
 }
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -601,110 +826,6 @@ int Controle::pesquisar() {
 
 #endif
 
-void Controle::selecionarTipoNoticia() {
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-    clear();
-    
-    vector<const char*> tipos = {
-        "0 - Avisos",
-        "1 - Fofoca", 
-        "2 - Humor",
-        "3 - StackOverflow",
-        "4 - Anonimo"
-    };
-    
-    int escolha = 0;
-    int ch = 0;
-    
-    while(ch != '\n') {
-        clear();
-        mvprintw(0, 0, "=== SELECIONAR TIPO DE NOTÍCIA ===");
-        
-        for(size_t i = 0; i < tipos.size(); i++) {
-            if((int)i == escolha) {
-                attron(A_REVERSE);
-                mvprintw(i + 2, 0, "> %s", tipos[i]);
-                attroff(A_REVERSE);
-            } else {
-                mvprintw(i + 2, 0, "  %s", tipos[i]);
-            }
-        }
-        
-        mvprintw(8, 0, "Use setas para navegar, Enter para selecionar");
-        refresh();
-        
-        ch = getch();
-        
-        switch(ch) {
-            case KEY_UP:
-                escolha = (escolha > 0) ? escolha - 1 : tipos.size() - 1;
-                break;
-            case KEY_DOWN:
-                escolha = (escolha < (int)tipos.size() - 1) ? escolha + 1 : 0;
-                break;
-        }
-    }
-    
-    tipoNoticiaAtual = escolha;
-    endwin();
-}
-
-void Controle::editarNoticiaAtual() {
-    
-    apagar(All); //Somente limpando o buffer
-    selecionarTipoNoticia();
-    
-    executarEditor();
-}
-
-string Controle::exibirNoticias(int ind) {
-
-    string lista;
-
-    lista = "\n--- Notícia " + to_string(ind + 1) + " ---" + "\n"
-          + "Tipo: " + getTipoNoticiaString(noticias[ind]->getTipo()) + "\n"
-          + "Autor: " + noticias[ind]->getAutor() + "\n"
-          + "Título: " + noticias[ind]->getTitulo() + "\n"
-          + "Data: " + noticias[ind]->getDataFormatada() + "\n"
-          + "Hora: " + noticias[ind]->getHoraFormatada() + "\n";
-    
-    return lista;
-}
-
-void Controle::gerarHTML() {
-    ofstream arquivo("noticias.html");
-    
-    arquivo << "<!DOCTYPE html>" << endl;
-    arquivo << "<html><head><title>Aquário - Notícias</title></head>" << endl;
-    arquivo << "<body><h1>Sistema Aquário</h1>" << endl;
-    
-    for(size_t i = 0; i < noticias.size(); i++) {
-        arquivo << "<div class='noticia'>" << endl;
-        arquivo << "<h2>" << noticias[i]->getTitulo() << "</h2>" << endl;
-        arquivo << "<p><strong>Autor:</strong> " << noticias[i]->getAutor() << "</p>" << endl;
-        arquivo << "<p>" << noticias[i]->getCorpo() << "</p>" << endl;
-        arquivo << "</div><hr>" << endl;
-    }
-    
-    arquivo << "</body></html>" << endl;
-    arquivo.close();
-    
-    cout << "HTML gerado: noticias.html" << endl;
-}
-
-string Controle::getTipoNoticiaString(int tipo) {
-    switch(tipo) {
-        case 0: return "Avisos";
-        case 1: return "Fofoca";
-        case 2: return "Humor"; 
-        case 3: return "StackOverflow";
-        case 4: return "Anonimo";
-        default: return "Desconhecido";
-    }
-}
 
 #ifdef __linux__
 
@@ -716,9 +837,35 @@ Controle::Controle()
     tipoNoticiaAtual = 0; // Avisos por padrão
 }
 
-Controle::Controle(int tipoNoticia)
+void Controle::Inicializar(int tipoNoticia)
 {
+
+    vector<wstring> temp = std_labels;
     
+    switch(tipoNoticia)
+    {
+        case 0:
+            temp.insert(temp.begin() + 5, L"Achados e Perdidos: ");
+            temp.insert(temp.begin() + 6, L"Problemas: ");
+            break;
+        case 1:
+            temp.insert(temp.begin() + 5, L"Fofoca:    ");
+            break;
+        case 2:
+            temp.insert(temp.begin() + 5, L"Piada:     ");
+            break;
+        case 3:
+            temp.insert(temp.begin() + 5, L"Topico:    ");
+            temp.insert(temp.begin() + 6, L"Pergunta:  ");
+            break;
+        case 4:
+            break;
+    }
+
+    rotulos.clear();
+    rotulos = temp;
+    textos.clear();
+    textos.resize(rotulos.size());
 
 }
 
@@ -743,19 +890,53 @@ void Controle::criarNoticia(int tipo) {
     novaNoticia->setTipo(tipo);
 
     int dia = 0, mes = 0, ano = 0, h = 0, min = 0;
+    int ind_data = 5;
+    int ind_hour = 6;   
 
-    if(!(textos[Dataa].size() < 8))
+    switch(tipo)
     {
-        dia = stoi(textos[Dataa].substr(0, 2));
-        mes = stoi(textos[Dataa].substr(2, 2));
-        ano = stoi(textos[Dataa].substr(4));
-    }
-    if(!(textos[Hour].size() < 4))
-    {
-        h = stoi(textos[Hour].substr(0, 2));
-        min = stoi(textos[Hour].substr(2));
+        case 0:
+            dynamic_cast<Avisos*>(novaNoticia.get())->setCategoria(wstringToUtf8(textos[5]));
+            dynamic_cast<Avisos*>(novaNoticia.get())->setProblema(wstringToUtf8(textos[6]));
+            ind_data += 2;
+            ind_hour += 2;
+            break;
+        case 1:
+            dynamic_cast<Fofoca*>(novaNoticia.get())->setAssunto(wstringToUtf8(textos[5]));
+            ind_data++;
+            ind_hour++;
+            break;
+        case 2:
+            dynamic_cast<Humor*>(novaNoticia.get())->setPiada(wstringToUtf8(textos[5]));
+            ind_data++;
+            ind_hour++;
+            break;
+        case 3:
+            dynamic_cast<StackOverflow*>(novaNoticia.get())->setTudo(wstringToUtf8(textos[5]), wstringToUtf8(textos[6]));
+            ind_data += 2;
+            ind_hour += 2;
+            break;
+        default:
+            break;
     }
 
+    try{
+    if(!(textos[ind_data].size() < 8))
+    {
+        dia = stoi(textos[ind_data].substr(0, 2));
+        mes = stoi(textos[ind_data].substr(2, 2));
+        ano = stoi(textos[ind_data].substr(4));
+    }
+    if(!(textos[ind_hour].size() < 4))
+    {
+        h = stoi(textos[ind_hour].substr(0, 2));
+        min = stoi(textos[ind_hour].substr(2));
+    }
+    }
+    catch(exception& r)
+    {
+        cerr << r.what() << endl;
+    }
     novaNoticia->setData(dia, mes, ano);
     novaNoticia->setHora(h, min);
     
@@ -792,6 +973,9 @@ void Controle::mover(int cx, int cy, wstring &buffer) {
                     x++; 
                 }
                 break;
+            case L'\033':
+                throw 50;
+                break;
             case KEY_UP:
             case KEY_DOWN:
                 return;
@@ -825,7 +1009,7 @@ void Controle::mover(int cx, int cy, wstring &buffer) {
     curs_set(0);
 }
 
-void Controle::executarEditor() {
+void Controle:: executarEditor() {
     initscr();
     setlocale(LC_ALL, "");
     cbreak();
@@ -860,8 +1044,8 @@ void Controle::executarEditor() {
                 campo_atual++; // Enter pula pro próximo campo
             }
         }
-        else if 
-            (wch == KEY_UP) campo_atual = (campo_atual > 0) ? campo_atual - 1 : (int)textos.size() - 1;
+        else if (wch == KEY_UP) 
+            campo_atual = (campo_atual > 0) ? campo_atual - 1 : (int)textos.size() - 1;
         else 
             campo_atual = (campo_atual < (int)  textos.size() - 1) ? campo_atual + 1 : 0;
     }
@@ -894,7 +1078,6 @@ void Controle::apagar(int t) {
             break;
         case All:
             textos.clear();
-            textos.resize(rotulos.size(), L" ");
             break;
         default:
             break;
@@ -1046,6 +1229,36 @@ void Controle::salvarDadoIndice(int contador) {
     js["Imagem"] = wstringToUtf8(textos[Image]);
     js["Tipo"] = tipoNoticiaAtual;
 
+    switch(tipoNoticiaAtual)
+    {
+        case 0:
+            js["AchadosEPerdidos"] = wstringToUtf8(textos[5]);
+            js["Problemas"] = wstringToUtf8(textos[6]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            break;
+        case 1:
+            js["Fofoca"] = wstringToUtf8(textos[5]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            break;
+        case 2:
+            js["Piada"] = wstringToUtf8(textos[5]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            break;
+        case 3:
+            js["Topico"] = wstringToUtf8(textos[5]);
+            js["Pergunta"] = wstringToUtf8(textos[6]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            break;
+        default:
+            js["Data"] = wstringToUtf8(textos[Dataa]);
+            js["Hora"] = wstringToUtf8(textos[Hour]);
+            break;
+    }
+
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
 
@@ -1056,9 +1269,10 @@ void Controle::salvarDadoIndice(int contador) {
 void Controle::carregarDadoIndice(int indice) {
     ifstream arquivo;
 
-   string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
+    string nomeArquivo = "./Pasta/arquivo" + to_string(indice) + ".json";
         arquivo.open(nomeArquivo);
-        if (arquivo.is_open()) {
+        if (arquivo.is_open()) 
+        {
             try {
                 arquivo >> js; // Se botar um indice invalido dá erro
             } catch (json::parse_error& e) {
@@ -1070,6 +1284,11 @@ void Controle::carregarDadoIndice(int indice) {
             string json_string_recebida = js.dump();
             json dados_lidos = json::parse(json_string_recebida);
 
+            tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
+
+            apagar(All);
+            Inicializar(tipoNoticiaAtual);
+
             textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
 
             textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
@@ -1080,14 +1299,42 @@ void Controle::carregarDadoIndice(int indice) {
 
             textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
 
-            textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
-
-            textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
-        }else
+            switch(tipoNoticiaAtual)
+            {
+                case 0:
+                    textos[5] = utf8ToWstring(dados_lidos["AchadosEPerdidos"]);
+                    textos[6] = utf8ToWstring(dados_lidos["Problemas"]);
+                    textos[Dataa + 2] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 2] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 1:
+                    textos[5] = utf8ToWstring(dados_lidos["Fofoca"]);
+                    textos[Dataa + 1] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 1] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 2:
+                    textos[5] = utf8ToWstring(dados_lidos["Piada"]);
+                    textos[Dataa + 1] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 1] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 3:
+                    textos[5] = utf8ToWstring(dados_lidos["Topico"]);
+                    textos[6] = utf8ToWstring(dados_lidos["Pergunta"]);
+                    textos[Dataa + 2] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 2] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                default:
+                    textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
+            }
+        }
+        else
             throw 9000;
 }
 
 void Controle::editarNoticia(int indice) {
+    if(indice == -1)
+        throw 1;
     carregarDadoIndice(indice);
     executarEditor();
     salvarDadoIndice(indice);
@@ -1123,14 +1370,42 @@ void Controle::salvarDados() {
     of_indice << indice;
     of_indice.close();
 
+    js["Tipo"] = tipoNoticiaAtual;
     js["Titulo"] = wstringToUtf8(textos[Title]);
     js["Subtitulo"] = wstringToUtf8(textos[Subtitle]);
     js["Autor"] = wstringToUtf8(textos[Author]);
     js["Corpo"] = wstringToUtf8(textos[Body]);
     js["Imagem"] = wstringToUtf8(textos[Image]);
-    js["Data"] = wstringToUtf8(textos[Dataa]);
-    js["Hora"] = wstringToUtf8(textos[Hour]);
-    js["Tipo"] = tipoNoticiaAtual;
+
+    switch(tipoNoticiaAtual)
+    {
+        case 0:
+            js["AchadosEPerdidos"] = wstringToUtf8(textos[5]);
+            js["Problemas"] = wstringToUtf8(textos[6]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            break;
+        case 1:
+            js["Fofoca"] = wstringToUtf8(textos[5]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            break;
+        case 2:
+            js["Piada"] = wstringToUtf8(textos[5]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 1]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 1]);
+            break;
+        case 3:
+            js["Topico"] = wstringToUtf8(textos[5]);
+            js["Pergunta"] = wstringToUtf8(textos[6]);
+            js["Data"] = wstringToUtf8(textos[Dataa + 2]);
+            js["Hora"] = wstringToUtf8(textos[Hour + 2]);
+            break;
+        default:
+            js["Data"] = wstringToUtf8(textos[Dataa]);
+            js["Hora"] = wstringToUtf8(textos[Hour]);
+            break;
+    }
 
     string nomeArquivo = "./Pasta/arquivo" + to_string(contador) + ".json";
     arquivo.open(nomeArquivo);
@@ -1158,32 +1433,64 @@ void Controle::carregarDados() {
         for (int i = 0; i <= contador; i++) {
             string nomeArquivo = "./Pasta/arquivo" + to_string(i) + ".json";
             arquivo.open(nomeArquivo);
+
+            if (!arquivo.is_open()) {
+            continue;
+            }
+
             try {
                 arquivo >> js; // Se botar um indice invalido dá erro
             } catch (json::parse_error& e) {
                 std::cerr << "Erro de parsing no JSON: " << e.what() << std::endl;
+                arquivo.close();
             }
             arquivo.close();
 
             string json_string_recebida = js.dump();
             json dados_lidos = json::parse(json_string_recebida);
 
-            textos[Title] = utf8ToWstring(dados_lidos["Titulo"]);
-
-            textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"]);
-
-            textos[Author] = utf8ToWstring(dados_lidos["Autor"]);
-
-            textos[Body] = utf8ToWstring(dados_lidos["Corpo"]);
-
-            textos[Image] = utf8ToWstring(dados_lidos["Imagem"]);
-
-            textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
-
-            textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
-
             tipoNoticiaAtual = dados_lidos["Tipo"].get<int>();
 
+            Inicializar(tipoNoticiaAtual);
+
+            textos[Title] = utf8ToWstring(dados_lidos["Titulo"].get<string>());
+
+            textos[Subtitle] = utf8ToWstring(dados_lidos["Subtitulo"].get<string>());
+
+            textos[Author] = utf8ToWstring(dados_lidos["Autor"].get<string>());
+
+            textos[Body] = utf8ToWstring(dados_lidos["Corpo"].get<string>());
+
+            textos[Image] = utf8ToWstring(dados_lidos["Imagem"].get<string>());
+
+            switch(tipoNoticiaAtual)
+            {
+                case 0:
+                    textos[5] = utf8ToWstring(dados_lidos["AchadosEPerdidos"]);
+                    textos[6] = utf8ToWstring(dados_lidos["Problemas"]);
+                    textos[Dataa + 2] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 2] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 1:
+                    textos[5] = utf8ToWstring(dados_lidos["Fofoca"]);
+                    textos[Dataa + 1] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 1] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 2:
+                    textos[5] = utf8ToWstring(dados_lidos["Piada"]);
+                    textos[Dataa + 1] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 1] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                case 3:
+                    textos[5] = utf8ToWstring(dados_lidos["Topico"]);
+                    textos[6] = utf8ToWstring(dados_lidos["Pergunta"]);
+                    textos[Dataa + 2] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour + 2] = utf8ToWstring(dados_lidos["Hora"]);
+                    break;
+                default:
+                    textos[Dataa] = utf8ToWstring(dados_lidos["Data"]);
+                    textos[Hour] = utf8ToWstring(dados_lidos["Hora"]);
+            }
             criarNoticia(tipoNoticiaAtual); 
         }
     }

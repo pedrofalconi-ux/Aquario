@@ -6,6 +6,11 @@
 class StackOverflow : public Noticia {
 public:
     void exibir() override;
+    void setTudo(const string top, const string prob);
+    string exibirMais();
+private:
+    string topico;
+    string problema;
 };
 
 #endif

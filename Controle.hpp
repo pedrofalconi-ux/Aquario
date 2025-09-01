@@ -69,7 +69,8 @@ private:
     #ifdef __linux__
     // Atributos da classe
     vector<wstring> textos;
-    vector<wstring> rotulos = {L"Titulo:    ", L"Subtitulo: ", L"Autor:     ", L"Corpo:     ", L"Imagem:    ", L"Data:      ", L"Hora:      "};
+    vector<wstring> rotulos;
+    vector<wstring> std_labels = {L"Titulo:    ", L"Subtitulo: ", L"Autor:     ", L"Corpo:     ", L"Imagem:    ", L"Data:      ", L"Hora:      "};
 
     wint_t wch;
 
@@ -91,12 +92,12 @@ private:
 public:
     // Declaração do Construtor
     Controle();
-    Controle(int tipoNoticia);
-
+    
     // Declaração do método principal
     int pesquisar();
-
+    
     void animation();
+    void Inicializar(int tipoNoticia);
     void executarEditor();
     void apagar(int t);
     void editarNoticia(int indice);
@@ -104,6 +105,7 @@ public:
     void carregarDados();
     void iniciar_a_Porra_Toda();
     void imprimir();
+    void deletarNoticia();
 
      // Novos métodos para suas classes
     void criarNoticia(int tipo);
