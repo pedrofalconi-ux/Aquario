@@ -4,7 +4,7 @@
 #include <string>
 #include "Data.hpp"
 
-class Noticia : public Data {
+class Noticia {
 protected:
     std::string titulo;
     std::string subtitulo;
@@ -32,6 +32,10 @@ public:
     std::string getAutor()  { return autor; }
     std::string getImagem()  { return imagem; }
     int getTipo()  { return tipo; } 
+    string getData() { return data.getData(); }
+    void setData(int di, int me, int an) { data.setData(di,me,an); }
+    string getHora() { return data.getHora(); }
+    void setHora(int ho, int mi) { data.setHora(ho, mi); }
 
     void formatar() {
         if (autor.empty()) {
